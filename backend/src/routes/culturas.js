@@ -3,8 +3,8 @@ const ctrl = require('../controllers/culturasController');
 const upload = require('../middleware/upload');
 const requireRole = require('../middleware/requireRole');
 
-// GET /api/culturas/empresa/:empresaId
-router.get('/empresa/:empresaId', ctrl.getCulturasByEmpresa);
+// GET /api/culturas — elementos activos de la empresa activa
+router.get('/', ctrl.getCulturas);
 
 // POST /api/culturas
 router.post('/', requireRole('admin'), ctrl.createCultura);

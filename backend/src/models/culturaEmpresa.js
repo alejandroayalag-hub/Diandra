@@ -1,36 +1,8 @@
 const pool = require('../db/pool');
 
 const CulturaEmpresaModel = {
-  async findAll(filters = {}) {
-    let query = 'SELECT * FROM cultura_empresa';
-    const params = [];
-    const conditions = [];
-
-    if (filters.empresaId) {
-      conditions.push(`empresa_id = $${conditions.length + 1}`);
-      params.push(filters.empresaId);
-    }
-    if (filters.tipo) {
-      conditions.push(`tipo = $${conditions.length + 1}`);
-      params.push(filters.tipo);
-    }
-    if (filters.activo !== undefined) {
-      conditions.push(`activo = $${conditions.length + 1}`);
-      params.push(filters.activo);
-    }
-
-    if (conditions.length > 0) {
-      query += ' WHERE ' + conditions.join(' AND ');
-    }
-
-    query += ' ORDER BY orden ASC, created_at DESC';
-
-    const { rows } = await pool.query(query, params);
-    return rows;
-  },
-
-  async findById(id) {
-    const { rows } = await pool.query('SELECT * FROM cultura_empresa WHERE id = $1', [id]);
+  async findById(empresaId, id) {
+    const { rows } = await pool.query('SELECT * FROM cultura_empresa WHERE empresa_id = $1 AND id = $2', [empresaId, id]);
     return rows[0] || null;
   },
 
@@ -65,7 +37,7 @@ const CulturaEmpresaModel = {
     return rows[0];
   },
 
-  async update(id, data) {
+  async update(empresaId, id, data) {
     // Lista explícita de campos editables
     const EDITABLES = [
       'titulo',
@@ -90,7 +62,7 @@ const CulturaEmpresaModel = {
     });
 
     if (Object.keys(updates).length === 0) {
-      return this.findById(id);
+      return this.findById(empresaId, id);
     }
 
     const fields = Object.keys(updates);
@@ -98,28 +70,21 @@ const CulturaEmpresaModel = {
     const set = fields.map((f, i) => `${f} = $${i + 1}`).join(', ');
 
     const { rows } = await pool.query(
-      `UPDATE cultura_empresa SET ${set}, updated_at = NOW() WHERE id = $${fields.length + 1} RETURNING *`,
-      [...values, id]
+      `UPDATE cultura_empresa SET ${set}, updated_at = NOW()
+       WHERE empresa_id = $${fields.length + 1} AND id = $${fields.length + 2} RETURNING *`,
+      [...values, empresaId, id]
     );
     return rows[0] || null;
   },
 
-  async delete(id) {
-    await pool.query('DELETE FROM cultura_empresa WHERE id = $1', [id]);
+  async delete(empresaId, id) {
+    await pool.query('DELETE FROM cultura_empresa WHERE empresa_id = $1 AND id = $2', [empresaId, id]);
   },
 
   async findByEmpresaId(empresaId) {
     const { rows } = await pool.query(
       'SELECT * FROM cultura_empresa WHERE empresa_id = $1 ORDER BY orden ASC, created_at DESC',
       [empresaId]
-    );
-    return rows;
-  },
-
-  async findByTipo(tipo) {
-    const { rows } = await pool.query(
-      'SELECT * FROM cultura_empresa WHERE tipo = $1 ORDER BY created_at DESC',
-      [tipo]
     );
     return rows;
   },
@@ -140,17 +105,9 @@ const CulturaEmpresaModel = {
     return rows;
   },
 
-  async findByActivo(activo) {
-    const { rows } = await pool.query(
-      'SELECT * FROM cultura_empresa WHERE activo = $1 ORDER BY created_at DESC',
-      [activo]
-    );
-    return rows;
-  },
-
-  async addArchivo(id, archivo) {
+  async addArchivo(empresaId, id, archivo) {
     // Fetch current archivos
-    const current = await this.findById(id);
+    const current = await this.findById(empresaId, id);
     if (!current) return null;
 
     const archivos = Array.isArray(current.archivos)
@@ -159,15 +116,15 @@ const CulturaEmpresaModel = {
     const updatedArchivos = [...archivos, archivo];
 
     const { rows } = await pool.query(
-      `UPDATE cultura_empresa SET archivos = $1, updated_at = NOW() WHERE id = $2 RETURNING *`,
-      [JSON.stringify(updatedArchivos), id]
+      `UPDATE cultura_empresa SET archivos = $1, updated_at = NOW() WHERE id = $2 AND empresa_id = $3 RETURNING *`,
+      [JSON.stringify(updatedArchivos), id, empresaId]
     );
     return rows[0] || null;
   },
 
-  async removeArchivo(id, archivoId) {
+  async removeArchivo(empresaId, id, archivoId) {
     // Fetch current archivos
-    const current = await this.findById(id);
+    const current = await this.findById(empresaId, id);
     if (!current) return null;
 
     const archivos = Array.isArray(current.archivos)
@@ -176,8 +133,8 @@ const CulturaEmpresaModel = {
     const updatedArchivos = archivos.filter((a) => a.id !== archivoId);
 
     const { rows } = await pool.query(
-      `UPDATE cultura_empresa SET archivos = $1, updated_at = NOW() WHERE id = $2 RETURNING *`,
-      [JSON.stringify(updatedArchivos), id]
+      `UPDATE cultura_empresa SET archivos = $1, updated_at = NOW() WHERE id = $2 AND empresa_id = $3 RETURNING *`,
+      [JSON.stringify(updatedArchivos), id, empresaId]
     );
     return rows[0] || null;
   },

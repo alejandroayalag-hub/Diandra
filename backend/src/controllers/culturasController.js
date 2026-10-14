@@ -1,23 +1,18 @@
 const fs = require('fs');
 const { randomUUID } = require('crypto');
 const CulturaEmpresaModel = require('../models/culturaEmpresa');
+const { relativa, absoluta } = require('../lib/archivos');
 
 const TIPOS_CULTURA = ['mision', 'vision', 'valores', 'codigo_conducta', 'politicas', 'otro'];
 
-// GET /api/culturas/empresa/:empresaId
-exports.getCulturasByEmpresa = async (req, res, next) => {
-  try {
-    const { empresaId } = req.params;
-
-    const culturas = await CulturaEmpresaModel.findActiveByEmpresaId(empresaId);
-    res.json(culturas);
-  } catch (err) { next(err); }
-};
+// GET /api/culturas
+exports.getCulturas = async (req, res) =>
+  res.json(await CulturaEmpresaModel.findActiveByEmpresaId(req.empresaId));
 
 // GET /api/culturas/:culturaId
 exports.getCulturaById = async (req, res, next) => {
   try {
-    const cultura = await CulturaEmpresaModel.findById(req.params.culturaId);
+    const cultura = await CulturaEmpresaModel.findById(req.empresaId, req.params.culturaId);
     if (!cultura) return res.status(404).json({ error: 'Cultura no encontrada' });
 
     res.json(cultura);
@@ -27,10 +22,11 @@ exports.getCulturaById = async (req, res, next) => {
 // POST /api/culturas
 exports.createCultura = async (req, res, next) => {
   try {
-    const { empresaId, tipo, titulo, descripcion } = req.body;
+    const empresaId = req.empresaId;
+    const { tipo, titulo, descripcion } = req.body;
 
-    if (!empresaId || !tipo || !titulo) {
-      return res.status(400).json({ error: 'Campos requeridos: empresaId, tipo, titulo' });
+    if (!tipo || !titulo) {
+      return res.status(400).json({ error: 'Campos requeridos: tipo, titulo' });
     }
 
     if (!TIPOS_CULTURA.includes(tipo)) {
@@ -67,7 +63,7 @@ exports.updateCultura = async (req, res, next) => {
       return res.status(400).json({ error: `tipo inválido. Valores permitidos: ${TIPOS_CULTURA.join(', ')}` });
     }
 
-    const cultura = await CulturaEmpresaModel.update(req.params.culturaId, req.body);
+    const cultura = await CulturaEmpresaModel.update(req.empresaId, req.params.culturaId, req.body);
     if (!cultura) return res.status(404).json({ error: 'Cultura no encontrada' });
 
     res.json(cultura);
@@ -77,10 +73,10 @@ exports.updateCultura = async (req, res, next) => {
 // DELETE /api/culturas/:culturaId
 exports.deleteCultura = async (req, res, next) => {
   try {
-    const cultura = await CulturaEmpresaModel.findById(req.params.culturaId);
+    const cultura = await CulturaEmpresaModel.findById(req.empresaId, req.params.culturaId);
     if (!cultura) return res.status(404).json({ error: 'Cultura no encontrada' });
 
-    await CulturaEmpresaModel.delete(req.params.culturaId);
+    await CulturaEmpresaModel.delete(req.empresaId, req.params.culturaId);
 
     res.status(204).end();
   } catch (err) { next(err); }
@@ -91,18 +87,21 @@ exports.subirArchivo = async (req, res, next) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No se recibió archivo' });
 
-    const cultura = await CulturaEmpresaModel.findById(req.params.culturaId);
-    if (!cultura) return res.status(404).json({ error: 'Cultura no encontrada' });
+    const cultura = await CulturaEmpresaModel.findById(req.empresaId, req.params.culturaId);
+    if (!cultura) {
+      fs.unlinkSync(req.file.path);
+      return res.status(404).json({ error: 'Cultura no encontrada' });
+    }
 
     const archivo = {
       id: randomUUID(),
       nombre: req.file.originalname,
-      url: req.file.path,
+      url: relativa(req.file.path),
       tipo: req.file.mimetype,
       tamano: req.file.size,
     };
 
-    const actualizado = await CulturaEmpresaModel.addArchivo(req.params.culturaId, archivo);
+    const actualizado = await CulturaEmpresaModel.addArchivo(req.empresaId, req.params.culturaId, archivo);
 
     res.status(201).json(actualizado);
   } catch (err) { next(err); }
@@ -113,7 +112,7 @@ exports.eliminarArchivo = async (req, res, next) => {
   try {
     const { culturaId, archivoId } = req.params;
 
-    const cultura = await CulturaEmpresaModel.findById(culturaId);
+    const cultura = await CulturaEmpresaModel.findById(req.empresaId, culturaId);
     if (!cultura) return res.status(404).json({ error: 'Cultura no encontrada' });
 
     const archivos = Array.isArray(cultura.archivos)
@@ -122,11 +121,11 @@ exports.eliminarArchivo = async (req, res, next) => {
     const archivo = archivos.find((a) => String(a.id) === String(archivoId));
     if (!archivo) return res.status(404).json({ error: 'Archivo no encontrado' });
 
-    if (archivo.url && fs.existsSync(archivo.url)) {
-      fs.unlinkSync(archivo.url);
+    if (archivo.url && fs.existsSync(absoluta(archivo.url))) {
+      fs.unlinkSync(absoluta(archivo.url));
     }
 
-    const actualizado = await CulturaEmpresaModel.removeArchivo(culturaId, archivoId);
+    const actualizado = await CulturaEmpresaModel.removeArchivo(req.empresaId, culturaId, archivoId);
 
     res.json(actualizado);
   } catch (err) { next(err); }
