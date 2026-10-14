@@ -7,6 +7,7 @@ const rateLimit = require('express-rate-limit');
 
 const errorHandler = require('./middleware/errorHandler');
 const authMiddleware = require('./middleware/auth');
+const empresaMiddleware = require('./middleware/empresa');
 const { UPLOADS_DIR } = require('./lib/archivos');
 
 const app = express();
@@ -27,15 +28,16 @@ const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, standardHead
 app.use('/api/auth', loginLimiter, require('./routes/auth'));
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
-app.use('/api/empleados', authMiddleware, require('./routes/empleados'));
-app.use('/api/documentos', authMiddleware, require('./routes/documentos'));
-app.use('/api/contratos', authMiddleware, require('./routes/contratos'));
-app.use('/api/pagos',     authMiddleware, require('./routes/pagos'));
-app.use('/api/formatos',  authMiddleware, require('./routes/formatos'));
-app.use('/api/checadas', require('./routes/checadas'));
-app.use('/api/salidas', authMiddleware, require('./routes/salidas'));
-app.use('/api/documentosSalida', authMiddleware, require('./routes/documentosSalida'));
-app.use('/api/culturas', authMiddleware, require('./routes/culturas'));
+app.use('/api/empresas', authMiddleware, require('./routes/empresas'));
+app.use('/api/empleados', authMiddleware, empresaMiddleware, require('./routes/empleados'));
+app.use('/api/documentos', authMiddleware, require('./routes/documentos'));   // /tipos es compartido; el router aplica empresa al resto
+app.use('/api/contratos', authMiddleware, empresaMiddleware, require('./routes/contratos'));
+app.use('/api/pagos', authMiddleware, empresaMiddleware, require('./routes/pagos'));
+app.use('/api/formatos', authMiddleware, require('./routes/formatos'));       // catálogo compartido del despacho
+app.use('/api/checadas', require('./routes/checadas'));                       // agente por api_key; el panel aplica auth+empresa en el router
+app.use('/api/salidas', authMiddleware, empresaMiddleware, require('./routes/salidas'));
+app.use('/api/documentosSalida', authMiddleware, empresaMiddleware, require('./routes/documentosSalida'));
+app.use('/api/culturas', authMiddleware, empresaMiddleware, require('./routes/culturas'));
 
 app.use(errorHandler);
 
