@@ -96,12 +96,18 @@ Obligaciones solo se desactivan, nunca se borran (conservan cumplimientos).
   - "mes inmediato posterior" → mensual, día N
   - "<mes> del (año|ejercicio) siguiente" → anual, día N (o último del mes), mes M
   - otro → `manual`
-- Sin texto extraíble → error 422 "La CSF no tiene texto legible (¿es escaneada?)".
+- `pdf-parse` pega palabras en la CSF real ("Amástardareldía17delmesinmediato") y une descripción con
+  vencimiento ("…salariosAmástardar…"): la clasificación trabaja sobre texto en minúsculas sin espacios y
+  el corte descripción/vencimiento busca "A más tardar" / "Dentro de" / "Se presenta" / "En el mes" con
+  espacios opcionales. Annual de personas morales: "Dentro de los tres meses siguientes al cierre del
+  ejercicio" → anual, 31 de marzo.
+- Problemas de lectura no bloquean: la respuesta trae `aviso` (sin texto legible / sin obligaciones /
+  RFC de la CSF distinto al del cliente) y Diana captura o corrige a mano. El documento sí se guarda.
 - Función pura `parseCsfText(texto) → [{descripcion, vencimiento_texto, periodicidad, dia, mes, fecha_inicio, fecha_fin}]`, testeada aparte.
 
 Flujo:
 1. `POST /api/empresas/:id/csf` (multipart) → guarda documento, devuelve obligaciones leídas
-   comparadas con las actuales: `{nuevas, existentes, desaparecidas}`. No modifica obligaciones.
+   comparadas con las actuales: `{documento, nuevas, existentes, desaparecidas, aviso}`. No modifica obligaciones.
 2. `PUT /api/empresas/:id/obligaciones` con la lista confirmada (editada por Diana) →
    upsert por descripción; las que no vengan se desactivan.
 
