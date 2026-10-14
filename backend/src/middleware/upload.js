@@ -1,12 +1,12 @@
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const { UPLOADS_DIR } = require('../lib/archivos');
 
 const storage = multer.diskStorage({
   destination(req, file, cb) {
-    const dir = path.join(__dirname, '..', '..', 'uploads');
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
+    if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+    cb(null, UPLOADS_DIR);
   },
   filename(req, file, cb) {
     const ext = path.extname(file.originalname);
