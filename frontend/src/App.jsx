@@ -24,18 +24,34 @@ function Layout() {
   const nombre = localStorage.getItem('nombre');
   const [empresas, setEmpresas] = useState(null);
   const [activa, setActiva] = useState(getEmpresaActiva());
+  const [errorEmpresas, setErrorEmpresas] = useState('');
 
   const cargarEmpresas = useCallback(async () => {
-    const lista = (await getEmpresas()).filter(e => e.activo);
+    let lista;
+    try {
+      lista = (await getEmpresas()).filter(e => e.activo);
+    } catch {
+      setErrorEmpresas('No se pudieron cargar las empresas. Recarga la página.');
+      return;
+    }
+    setErrorEmpresas('');
     setEmpresas(lista);
     let actual = getEmpresaActiva();
-    if (actual && !lista.some(e => e.id === actual.id)) { clearEmpresaActiva(); actual = null; }
+    const match = actual && lista.find(e => e.id === actual.id);
+    if (actual && !match) { clearEmpresaActiva(); actual = null; }
+    else if (match) { setEmpresaActiva(match); actual = getEmpresaActiva(); }
     if (!actual && lista.length === 1) { setEmpresaActiva(lista[0]); actual = getEmpresaActiva(); }
     setActiva(actual);
     if (lista.length === 0 && !location.pathname.startsWith('/empresas')) navigate('/empresas/nueva');
   }, [location.pathname, navigate]);
 
-  useEffect(() => { cargarEmpresas(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { cargarEmpresas(); }, []); // eslint-disable-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
+
+  useEffect(() => {
+    const handler = (ev) => { if (ev.key === 'empresaActiva' || ev.key === null) setActiva(getEmpresaActiva()); };
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
+  }, []);
 
   function cambiarEmpresa(id) {
     const e = empresas.find(x => x.id === Number(id));
@@ -48,6 +64,7 @@ function Layout() {
   function logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('nombre');
+    clearEmpresaActiva();
     navigate('/login');
   }
 
@@ -81,6 +98,7 @@ function Layout() {
           </button>
         </div>
       </nav>
+      {errorEmpresas && <div className="bg-red-50 border-b border-red-100 px-6 py-1.5 text-sm text-red-700">{errorEmpresas}</div>}
       {activa && !enEmpresas && (
         <div className="bg-blue-50 border-b border-blue-100 px-6 py-1.5 text-sm text-blue-900">
           Empresa: <strong>{activa.razon_social}</strong>

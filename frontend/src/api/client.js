@@ -22,7 +22,7 @@ api.interceptors.response.use(
     const code = err.response?.data?.code;
     if (code === 'EMPRESA_REQUERIDA' || code === 'EMPRESA_INVALIDA') {
       clearEmpresaActiva();
-      window.location.href = '/empresas';
+      if (!window.location.pathname.startsWith('/empresas')) window.location.href = '/empresas';
     }
     return Promise.reject(err);
   }

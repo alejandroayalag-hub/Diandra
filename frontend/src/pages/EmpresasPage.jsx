@@ -13,7 +13,12 @@ export default function EmpresasPage({ onCambio }) {
   async function toggle(e) {
     const accion = e.activo ? 'desactivar' : 'activar';
     if (!window.confirm(`¿Seguro que deseas ${accion} ${e.razon_social}? Sus datos se conservan.`)) return;
-    await setEmpresaActivo(e.id, !e.activo);
+    try {
+      await setEmpresaActivo(e.id, !e.activo);
+    } catch (err) {
+      window.alert(err.response?.data?.error || 'No se pudo cambiar el estado.');
+      return;
+    }
     if (e.activo && getEmpresaActiva()?.id === e.id) clearEmpresaActiva();
     await cargar();
     onCambio?.();

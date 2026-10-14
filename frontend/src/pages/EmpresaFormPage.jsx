@@ -16,9 +16,11 @@ export default function EmpresaFormPage({ onCambio }) {
   const [form, setForm] = useState(Object.fromEntries(CAMPOS.map(([k]) => [k, ''])));
   const [error, setError] = useState('');
   const [guardando, setGuardando] = useState(false);
+  const [errorCarga, setErrorCarga] = useState('');
 
   useEffect(() => {
-    if (id) getEmpresa(id).then(e => setForm(Object.fromEntries(CAMPOS.map(([k]) => [k, e[k] || '']))));
+    if (id) getEmpresa(id).then(e => setForm(Object.fromEntries(CAMPOS.map(([k]) => [k, e[k] || '']))))
+      .catch(() => setErrorCarga('No se pudo cargar la empresa.'));
   }, [id]);
 
   async function guardar(ev) {
@@ -38,6 +40,8 @@ export default function EmpresaFormPage({ onCambio }) {
       setGuardando(false);
     }
   }
+
+  if (errorCarga) return <p className="text-red-600">{errorCarga}</p>;
 
   return (
     <form onSubmit={guardar} className="bg-white border rounded p-6 max-w-2xl">
