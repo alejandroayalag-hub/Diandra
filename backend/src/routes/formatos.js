@@ -3,8 +3,9 @@ const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
 const pool = require('../db/pool');
+const { UPLOADS_DIR, relativa, absoluta } = require('../lib/archivos');
 
-const DIR_FORMATOS = path.join(__dirname, '..', '..', 'uploads', 'formatos');
+const DIR_FORMATOS = path.join(UPLOADS_DIR, 'formatos');
 if (!fs.existsSync(DIR_FORMATOS)) fs.mkdirSync(DIR_FORMATOS, { recursive: true });
 
 const storage = multer.diskStorage({
@@ -37,7 +38,7 @@ router.get('/', async (req, res, next) => {
 router.post('/:tipoId', upload.single('archivo'), async (req, res, next) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No se recibió archivo' });
-    const ruta = req.file.path;
+    const ruta = relativa(req.file.path);
     const { rows } = await pool.query(
       'UPDATE tipos_documento SET formato_ruta=$1 WHERE id=$2 RETURNING id, nombre, formato_ruta',
       [ruta, req.params.tipoId]
@@ -56,7 +57,7 @@ router.get('/:tipoId/descargar', async (req, res, next) => {
     );
     if (!rows.length || !rows[0].formato_ruta)
       return res.status(404).json({ error: 'Sin formato disponible' });
-    const ruta = path.resolve(rows[0].formato_ruta);
+    const ruta = absoluta(rows[0].formato_ruta);
     if (!fs.existsSync(ruta))
       return res.status(404).json({ error: 'Archivo no encontrado en el servidor' });
     res.download(ruta, `${rows[0].nombre}.pdf`);
@@ -66,12 +67,10 @@ router.get('/:tipoId/descargar', async (req, res, next) => {
 // DELETE /api/formatos/:tipoId — elimina el formato
 router.delete('/:tipoId', async (req, res, next) => {
   try {
-    const { rows } = await pool.query(
-      'UPDATE tipos_documento SET formato_ruta=NULL WHERE id=$1 RETURNING formato_ruta',
-      [req.params.tipoId]
-    );
-    if (rows[0]?.formato_ruta && fs.existsSync(rows[0].formato_ruta))
-      fs.unlinkSync(rows[0].formato_ruta);
+    const { rows: prev } = await pool.query('SELECT formato_ruta FROM tipos_documento WHERE id=$1', [req.params.tipoId]);
+    await pool.query('UPDATE tipos_documento SET formato_ruta=NULL WHERE id=$1', [req.params.tipoId]);
+    if (prev[0]?.formato_ruta && fs.existsSync(absoluta(prev[0].formato_ruta)))
+      fs.unlinkSync(absoluta(prev[0].formato_ruta));
     res.status(204).end();
   } catch (err) { next(err); }
 });
