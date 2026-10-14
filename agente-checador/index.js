@@ -4,7 +4,7 @@ const axios = require('axios');
 
 const CHECADOR_IP      = process.env.CHECADOR_IP      || '192.168.1.100';
 const CHECADOR_PUERTO  = parseInt(process.env.CHECADOR_PUERTO || '4370');
-const BACKEND_URL      = process.env.BACKEND_URL      || 'http://62.238.3.136/api';
+const BACKEND_URL      = process.env.BACKEND_URL      || 'http://62.238.3.136:8098/api';
 const API_KEY          = process.env.API_KEY;
 const INTERVALO_MIN    = parseInt(process.env.INTERVALO_MINUTOS || '5');
 

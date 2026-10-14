@@ -151,7 +151,14 @@ router.post('/importar', upload.single('pdf'), async (req, res, next) => {
       return res.status(409).json({ error: `La semana ${semana}/${anio} ya fue importada` });
     }
 
-    const registros = JSON.parse(registrosJson || '[]');
+    let registros;
+    try {
+      registros = JSON.parse(registrosJson || '[]');
+      if (!Array.isArray(registros)) throw new Error('no array');
+    } catch {
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({ error: 'registros inválidos' });
+    }
     const validos = await PagoModel.empleadosDeEmpresa(
       req.empresaId, registros.map(r => Number(r.empleado_id)).filter(Number.isInteger));
 
@@ -160,22 +167,34 @@ router.post('/importar', upload.single('pdf'), async (req, res, next) => {
     const ruta = path.join(PAGOS_DIR, filename);
     fs.renameSync(req.file.path, ruta);
 
-    const semanaRecord = await PagoModel.crearSemana(req.empresaId, {
-      semana: parseInt(semana),
-      anio: parseInt(anio),
-      filename,
-      ruta: relativa(ruta),
-      total_registros: registros.length,
-    });
+    const client = await pool.connect();
+    let semanaRecord;
+    try {
+      await client.query('BEGIN');
+      semanaRecord = await PagoModel.crearSemana(req.empresaId, {
+        semana: parseInt(semana),
+        anio: parseInt(anio),
+        filename,
+        ruta: relativa(ruta),
+        total_registros: registros.length,
+      }, client);
 
-    await PagoModel.insertarPagos(registros.map(r => ({
-      semana_pago_id: semanaRecord.id,
-      empleado_id: validos.has(Number(r.empleado_id)) ? Number(r.empleado_id) : null,
-      nombre_pdf: r.nombre_pdf,
-      cuenta: r.cuenta || null,
-      monto: r.monto || null,
-      autorizado: r.autorizado || null,
-    })));
+      await PagoModel.insertarPagos(registros.map(r => ({
+        semana_pago_id: semanaRecord.id,
+        empleado_id: validos.has(Number(r.empleado_id)) ? Number(r.empleado_id) : null,
+        nombre_pdf: r.nombre_pdf,
+        cuenta: r.cuenta || null,
+        monto: r.monto || null,
+        autorizado: r.autorizado || null,
+      })), client);
+      await client.query('COMMIT');
+    } catch (e) {
+      await client.query('ROLLBACK').catch(() => {});
+      if (fs.existsSync(ruta)) fs.unlinkSync(ruta);
+      throw e;
+    } finally {
+      client.release();
+    }
 
     res.status(201).json(semanaRecord);
   } catch (err) {

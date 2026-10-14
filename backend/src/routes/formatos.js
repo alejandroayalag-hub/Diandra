@@ -19,10 +19,14 @@ const upload = multer({
   storage,
   fileFilter: (req, file, cb) => {
     if (path.extname(file.originalname).toLowerCase() === '.pdf') cb(null, true);
-    else cb(new Error('Solo se permiten archivos PDF'));
+    else cb(Object.assign(new Error('Solo se permiten archivos PDF'), { status: 400 }));
   },
   limits: { fileSize: 20 * 1024 * 1024 },
 });
+
+// tipoId debe ser numérico: se usa en el nombre del archivo subido (evita path traversal)
+router.param('tipoId', (req, res, next, v) =>
+  /^\d+$/.test(v) ? next() : res.status(400).json({ error: 'Tipo inválido' }));
 
 // GET /api/formatos — lista tipos con indicador de formato disponible
 router.get('/', async (req, res, next) => {

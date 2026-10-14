@@ -1,5 +1,4 @@
 const fs = require('fs');
-const path = require('path');
 const { relativa, absoluta } = require('../lib/archivos');
 const DocumentoSalidaModel = require('../models/documentoSalida');
 const SalidaModel = require('../models/salida');

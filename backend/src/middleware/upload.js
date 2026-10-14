@@ -27,7 +27,7 @@ const fileFilter = (req, file, cb) => {
   const ext = path.extname(file.originalname).toLowerCase();
   // Validar extensión Y mimetype — la extensión sola es falsificable.
   if (allowed.includes(ext) && allowedMimes.has(file.mimetype)) cb(null, true);
-  else cb(new Error('Tipo de archivo no permitido. Use PDF, imagen o Word.'));
+  else cb(Object.assign(new Error('Tipo de archivo no permitido. Use PDF, imagen o Word.'), { status: 400 }));
 };
 
 module.exports = multer({ storage, fileFilter, limits: { fileSize: 20 * 1024 * 1024 } });

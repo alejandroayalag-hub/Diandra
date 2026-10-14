@@ -35,6 +35,7 @@ export default function EmpleadoDetallePage() {
   const [tab, setTab] = useState('documentos');
   const [pagos, setPagos] = useState([]);
   const [salidaActiva, setSalidaActiva] = useState(null);
+  const [noEncontrado, setNoEncontrado] = useState(false);
   const [showBajaModal, setShowBajaModal] = useState(false);
   const [showContrato, setShowContrato] = useState(false);
   const [bajaForm, setBajaForm] = useState({ tipoSalida: 'renuncia', fechaSalida: hoyISO(), razonSalida: '', salarioPendiente: '' });
@@ -42,7 +43,7 @@ export default function EmpleadoDetallePage() {
   const [creandoBaja, setCreandoBaja] = useState(false);
 
   useEffect(() => {
-    getEmpleado(id).then(setEmpleado);
+    getEmpleado(id).then(setEmpleado).catch(err => { if (err.response?.status === 404) setNoEncontrado(true); });
     getDocumentos(id).then(setDocumentos);
     getTipos().then(setTipos);
     getPagosEmpleado(id).then(setPagos);
@@ -120,6 +121,12 @@ export default function EmpleadoDetallePage() {
   };
 
 
+  if (noEncontrado) return (
+    <div>
+      <p className="text-gray-700 mb-2">Empleado no encontrado</p>
+      <Link to="/" className="text-blue-600 hover:underline">Volver a empleados</Link>
+    </div>
+  );
   if (!empleado) return <p className="text-gray-500">Cargando...</p>;
 
   const docsMap = Object.fromEntries(documentos.map(d => [d.tipo_documento_id, d]));

@@ -232,7 +232,7 @@ export default function GeneradorContratoModal({ empleado, onClose, onSuccess })
       cp_empresa:        f.cp_empresa        || e.cp                  || '',
       ciudad:            f.ciudad            || e.ciudad              || '',
       giro_empresa:      f.giro_empresa      || e.giro                || '',
-    })));
+    }))).catch(() => {});
   }, []);
   const [sugerenciasObl, setSugerenciasObl] = useState(new Set());
   const [sugerenciasProh, setSugerenciasProh] = useState(new Set());

@@ -5,7 +5,7 @@ const EDITABLES = [
   'nombre', 'apellido_paterno', 'apellido_materno', 'curp', 'rfc',
   'fecha_nacimiento', 'fecha_ingreso', 'puesto', 'departamento',
   'telefono', 'email', 'direccion', 'nombre_beneficiario', 'observaciones',
-  'estatus', 'estado', 'foto',
+  'estatus', 'estado',
   'contacto_emergencia_nombre', 'contacto_emergencia_telefono',
 ];
 
@@ -57,6 +57,14 @@ const EmpleadoModel = {
       `UPDATE empleados SET ${set}, updated_at = NOW()
        WHERE empresa_id = $${fields.length + 1} AND id = $${fields.length + 2} RETURNING *`,
       [...values, empresaId, id]
+    );
+    return rows[0] || null;
+  },
+
+  async setFoto(empresaId, id, ruta) {
+    const { rows } = await pool.query(
+      'UPDATE empleados SET foto = $1, updated_at = NOW() WHERE empresa_id = $2 AND id = $3 RETURNING *',
+      [ruta, empresaId, id]
     );
     return rows[0] || null;
   },

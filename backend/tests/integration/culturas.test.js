@@ -37,3 +37,11 @@ test('archivo de cultura con ruta relativa', async () => {
   expect(res.status).toBe(201);
   expect(path.isAbsolute(res.body.archivos[0].url)).toBe(false);
 });
+
+test('PUT ignora archivos del body', async () => {
+  const c = (await crear(A.id)).body;
+  const res = await api(A.id).put(`/api/culturas/${c.id}`).send({ titulo: 'Nuevo', archivos: [{ id: 'x', ruta: 'contratos/y.pdf' }] });
+  expect(res.status).toBe(200);
+  expect(res.body.titulo).toBe('Nuevo');
+  expect(res.body.archivos).toEqual([]);
+});

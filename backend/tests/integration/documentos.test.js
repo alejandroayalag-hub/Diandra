@@ -76,3 +76,21 @@ describe('contratos', () => {
     expect(fs.existsSync(path.join(UPLOADS_DIR, a.body.ruta))).toBe(true);
   });
 });
+
+test('upload de .txt → 400', async () => {
+  const res = await api(A.id).post('/api/documentos/upload')
+    .field('empleado_id', String(empA.id)).field('tipo_documento_id', String(tipoId))
+    .attach('archivo', Buffer.from('hola'), { filename: 'a.txt', contentType: 'text/plain' });
+  expect(res.status).toBe(400);
+});
+
+describe('formatos: tipoId', () => {
+  test('tipoId no numérico → 400 y no escribe fuera de UPLOADS_DIR/formatos', async () => {
+    const antes = fs.readdirSync(UPLOADS_DIR).sort();
+    const res = await api(A.id).post('/api/formatos/..%2F..%2Fx')
+      .attach('archivo', pdf, { filename: 'f.pdf', contentType: 'application/pdf' });
+    expect(res.status).toBe(400);
+    expect(fs.readdirSync(UPLOADS_DIR).sort()).toEqual(antes);
+    expect(fs.existsSync(path.join(UPLOADS_DIR, '..', 'x.pdf'))).toBe(false);
+  });
+});

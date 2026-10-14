@@ -43,5 +43,5 @@ exports.uploadFoto = async (req, res) => {
     return res.status(404).json({ error: 'Empleado no encontrado' });
   }
   if (empleado.foto && fs.existsSync(absoluta(empleado.foto))) fs.unlinkSync(absoluta(empleado.foto));
-  res.json(await EmpleadoModel.update(req.empresaId, req.params.id, { foto: relativa(req.file.path) }));
+  res.json(await EmpleadoModel.setFoto(req.empresaId, req.params.id, relativa(req.file.path)));
 };

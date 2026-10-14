@@ -42,7 +42,6 @@ const CulturaEmpresaModel = {
     const EDITABLES = [
       'titulo',
       'descripcion',
-      'archivos',
       'orden',
       'activo',
     ];
@@ -52,12 +51,7 @@ const CulturaEmpresaModel = {
       // Convertir camelCase a snake_case
       const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
       if (EDITABLES.includes(snakeKey)) {
-        // Convertir archivos a JSON string si es array
-        if (snakeKey === 'archivos' && Array.isArray(data[key])) {
-          updates[snakeKey] = JSON.stringify(data[key]);
-        } else {
-          updates[snakeKey] = data[key];
-        }
+        updates[snakeKey] = data[key];
       }
     });
 

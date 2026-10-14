@@ -2,8 +2,8 @@ const pool = require('../db/pool');
 
 // semanas_pago es tabla raíz; pagos hereda empresa por su semana.
 const PagoModel = {
-  async crearSemana(empresaId, { semana, anio, filename, ruta, total_registros }) {
-    const { rows } = await pool.query(
+  async crearSemana(empresaId, { semana, anio, filename, ruta, total_registros }, db = pool) {
+    const { rows } = await db.query(
       `INSERT INTO semanas_pago (empresa_id, semana, anio, filename, ruta, total_registros)
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
       [empresaId, semana, anio, filename, ruta, total_registros]
@@ -37,7 +37,7 @@ const PagoModel = {
   },
 
   // El caller garantiza semana_pago_id y empleado_id de la empresa activa.
-  async insertarPagos(registros) {
+  async insertarPagos(registros, db = pool) {
     if (!registros.length) return [];
     const values = registros.map((r, i) => {
       const base = i * 6;
@@ -46,7 +46,7 @@ const PagoModel = {
     const params = registros.flatMap(r => [
       r.semana_pago_id, r.empleado_id || null, r.nombre_pdf, r.cuenta || null, r.monto || null, r.autorizado || null,
     ]);
-    const { rows } = await pool.query(
+    const { rows } = await db.query(
       `INSERT INTO pagos (semana_pago_id, empleado_id, nombre_pdf, cuenta, monto, autorizado)
        VALUES ${values} RETURNING *`,
       params

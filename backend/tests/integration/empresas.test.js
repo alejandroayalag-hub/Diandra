@@ -84,3 +84,8 @@ describe('middleware de empresa activa', () => {
     expect(res.status).toBe(404);
   });
 });
+
+test('id fuera de rango de integer → 400', async () => {
+  const res = await api().get('/api/empresas/99999999999');
+  expect(res.status).toBe(400);
+});

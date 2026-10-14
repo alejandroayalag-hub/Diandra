@@ -43,3 +43,19 @@ test('semanas, detalle, descarga y borrado de otra empresa → 404 / no visibles
   expect((await api(A.id).get(`/api/pagos/empleado/${empB.id}`)).status).toBe(404);
   expect((await api(B.id).get(`/api/pagos/semana/${semB.id}/descargar`)).status).toBe(200);
 });
+
+test('importar con registro inválido hace rollback y la semana se puede reimportar', async () => {
+  const mala = await importar(A.id, [{ nombre_pdf: null, monto: 10 }]);
+  expect(mala.status).toBeGreaterThanOrEqual(400);
+  expect(mala.status).toBeLessThan(500);
+  const { rows } = await pool.query('SELECT 1 FROM semanas_pago WHERE empresa_id = $1', [A.id]);
+  expect(rows).toHaveLength(0);
+  expect((await importar(A.id, [{ nombre_pdf: 'OK', monto: 10 }])).status).toBe(201);
+});
+
+test('registros con JSON inválido → 400', async () => {
+  const res = await api(A.id).post('/api/pagos/importar')
+    .field('semana', '3').field('anio', '2026').field('registros', '{no-json')
+    .attach('pdf', pdf, { filename: 'p.pdf', contentType: 'application/pdf' });
+  expect(res.status).toBe(400);
+});

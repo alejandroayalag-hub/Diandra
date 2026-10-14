@@ -50,3 +50,17 @@ test('foto se guarda con ruta relativa y foto de otra empresa → 404', async ()
   const otra = await api(A.id).post(`/api/empleados/${empB.id}/foto`).attach('foto', png, { filename: 'f.png', contentType: 'image/png' });
   expect(otra.status).toBe(404);
 });
+
+test('PUT ignora foto del body (no se puede apuntar a archivos ajenos)', async () => {
+  const res = await api(A.id).put(`/api/empleados/${empA.id}`).send({ foto: 'contratos/ajeno.pdf', puesto: 'Jefe' });
+  expect(res.status).toBe(200);
+  expect(res.body.puesto).toBe('Jefe');
+  expect(res.body.foto).toBeNull();
+});
+
+test('errores de BD por datos del cliente → 400 (telefono largo, nombre vacío)', async () => {
+  const largo = await api(A.id).put(`/api/empleados/${empA.id}`).send({ telefono: 'x'.repeat(30) });
+  expect(largo.status).toBe(400);
+  const vacio = await api(A.id).put(`/api/empleados/${empA.id}`).send({ nombre: '' });
+  expect(vacio.status).toBe(400);
+});
