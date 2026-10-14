@@ -56,4 +56,24 @@ const EmpresaModel = {
   },
 };
 
-module.exports = { EmpresaModel, normalizarRfc };
+const EmpresaDocumentoModel = {
+  async create(empresaId, tipo, archivo, nombreOriginal) {
+    const { rows } = await pool.query(
+      'INSERT INTO empresa_documentos (empresa_id, tipo, archivo, nombre_original) VALUES ($1,$2,$3,$4) RETURNING *',
+      [empresaId, tipo, archivo, nombreOriginal]);
+    return rows[0];
+  },
+
+  async porEmpresa(empresaId) {
+    const { rows } = await pool.query(
+      'SELECT * FROM empresa_documentos WHERE empresa_id = $1 ORDER BY created_at DESC, id DESC', [empresaId]);
+    return rows;
+  },
+
+  async findById(empresaId, id) {
+    const { rows } = await pool.query('SELECT * FROM empresa_documentos WHERE empresa_id = $1 AND id = $2', [empresaId, id]);
+    return rows[0] || null;
+  },
+};
+
+module.exports = { EmpresaModel, EmpresaDocumentoModel, normalizarRfc };
