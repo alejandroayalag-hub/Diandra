@@ -5,8 +5,11 @@ const multer = require('multer');
 const pdfParse = require('pdf-parse');
 const pool = require('../db/pool');
 const PagoModel = require('../models/pago');
+const EmpleadoModel = require('../models/empleado');
+const { UPLOADS_DIR, relativa, absoluta } = require('../lib/archivos');
 
-const upload = multer({ dest: path.join(__dirname, '..', '..', 'uploads', 'pagos') });
+const PAGOS_DIR = path.join(UPLOADS_DIR, 'pagos');
+const upload = multer({ dest: PAGOS_DIR });
 
 function normalizarNombre(str) {
   return (str || '')
@@ -78,15 +81,15 @@ function parsearLineas(texto) {
   return registros;
 }
 
-async function buscarEmpleados() {
+async function buscarEmpleados(empresaId) {
   const { rows } = await pool.query(
-    `SELECT id, nombre, apellido_paterno, apellido_materno FROM empleados WHERE estatus = 'activo'`
+    `SELECT id, nombre, apellido_paterno, apellido_materno FROM empleados
+     WHERE empresa_id = $1 AND estatus = 'activo'`,
+    [empresaId]
   );
   return rows.map(e => ({
     id: e.id,
-    nombreNormalizado: normalizarNombre(
-      `${e.apellido_paterno} ${e.apellido_materno || ''} ${e.nombre}`
-    ),
+    nombreNormalizado: normalizarNombre(`${e.apellido_paterno} ${e.apellido_materno || ''} ${e.nombre}`),
     display: `${e.apellido_paterno} ${e.apellido_materno || ''}, ${e.nombre}`.trim(),
   }));
 }
@@ -114,7 +117,7 @@ router.post('/parsear', upload.single('pdf'), async (req, res, next) => {
     fs.unlinkSync(req.file.path);
 
     const registros = parsearLineas(data.text);
-    const empleados = await buscarEmpleados();
+    const empleados = await buscarEmpleados(req.empresaId);
 
     const preview = registros.map(r => {
       const match = matchEmpleado(r.nombre_pdf, empleados);
@@ -138,38 +141,41 @@ router.post('/importar', upload.single('pdf'), async (req, res, next) => {
     if (!req.file) return res.status(400).json({ error: 'No se recibió archivo PDF' });
 
     const { semana, anio, registros: registrosJson } = req.body;
-    if (!semana || !anio) return res.status(400).json({ error: 'Semana y año son requeridos' });
+    if (!semana || !anio) {
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({ error: 'Semana y año son requeridos' });
+    }
 
-    const existe = await PagoModel.semanaExiste(semana, anio);
-    if (existe) return res.status(409).json({ error: `La semana ${semana}/${anio} ya fue importada` });
+    if (await PagoModel.semanaExiste(req.empresaId, semana, anio)) {
+      fs.unlinkSync(req.file.path);
+      return res.status(409).json({ error: `La semana ${semana}/${anio} ya fue importada` });
+    }
 
-    const registros = JSON.parse(registrosJson);
+    const registros = JSON.parse(registrosJson || '[]');
+    const validos = await PagoModel.empleadosDeEmpresa(
+      req.empresaId, registros.map(r => Number(r.empleado_id)).filter(Number.isInteger));
 
-    // Mover PDF a carpeta definitiva
-    const pagosDir = path.join(__dirname, '..', '..', 'uploads', 'pagos');
-    if (!fs.existsSync(pagosDir)) fs.mkdirSync(pagosDir, { recursive: true });
-    const filename = `pagos_s${semana}_${anio}_${Date.now()}.pdf`;
-    const ruta = path.join(pagosDir, filename);
+    fs.mkdirSync(PAGOS_DIR, { recursive: true });
+    const filename = `pagos_e${req.empresaId}_s${semana}_${anio}_${Date.now()}.pdf`;
+    const ruta = path.join(PAGOS_DIR, filename);
     fs.renameSync(req.file.path, ruta);
 
-    const semanaRecord = await PagoModel.crearSemana({
+    const semanaRecord = await PagoModel.crearSemana(req.empresaId, {
       semana: parseInt(semana),
       anio: parseInt(anio),
       filename,
-      ruta,
+      ruta: relativa(ruta),
       total_registros: registros.length,
     });
 
-    const pagosAInsertar = registros.map(r => ({
+    await PagoModel.insertarPagos(registros.map(r => ({
       semana_pago_id: semanaRecord.id,
-      empleado_id: r.empleado_id || null,
+      empleado_id: validos.has(Number(r.empleado_id)) ? Number(r.empleado_id) : null,
       nombre_pdf: r.nombre_pdf,
       cuenta: r.cuenta || null,
       monto: r.monto || null,
       autorizado: r.autorizado || null,
-    }));
-
-    await PagoModel.insertarPagos(pagosAInsertar);
+    })));
 
     res.status(201).json(semanaRecord);
   } catch (err) {
@@ -179,47 +185,35 @@ router.post('/importar', upload.single('pdf'), async (req, res, next) => {
 });
 
 // GET /api/pagos/semanas
-router.get('/semanas', async (req, res, next) => {
-  try {
-    const semanas = await PagoModel.findSemanas();
-    res.json(semanas);
-  } catch (err) { next(err); }
-});
+router.get('/semanas', async (req, res) => res.json(await PagoModel.findSemanas(req.empresaId)));
 
 // GET /api/pagos/semana/:id
-router.get('/semana/:id', async (req, res, next) => {
-  try {
-    const pagos = await PagoModel.findBySemana(req.params.id);
-    res.json(pagos);
-  } catch (err) { next(err); }
+router.get('/semana/:id', async (req, res) => {
+  const semana = await PagoModel.findSemanaById(req.empresaId, req.params.id);
+  if (!semana) return res.status(404).json({ error: 'No encontrado' });
+  res.json(await PagoModel.findBySemana(req.empresaId, semana.id));
 });
 
 // GET /api/pagos/semana/:id/descargar
-router.get('/semana/:id/descargar', async (req, res, next) => {
-  try {
-    const semana = await PagoModel.findSemanaById(req.params.id);
-    if (!semana) return res.status(404).json({ error: 'No encontrado' });
-    res.download(path.resolve(semana.ruta), semana.filename);
-  } catch (err) { next(err); }
+router.get('/semana/:id/descargar', async (req, res) => {
+  const semana = await PagoModel.findSemanaById(req.empresaId, req.params.id);
+  if (!semana) return res.status(404).json({ error: 'No encontrado' });
+  res.download(absoluta(semana.ruta), semana.filename);
 });
 
 // GET /api/pagos/empleado/:id
-router.get('/empleado/:id', async (req, res, next) => {
-  try {
-    const pagos = await PagoModel.findByEmpleado(req.params.id);
-    res.json(pagos);
-  } catch (err) { next(err); }
+router.get('/empleado/:id', async (req, res) => {
+  const empleado = await EmpleadoModel.findById(req.empresaId, req.params.id);
+  if (!empleado) return res.status(404).json({ error: 'Empleado no encontrado' });
+  res.json(await PagoModel.findByEmpleado(req.empresaId, empleado.id));
 });
 
 // DELETE /api/pagos/semana/:id
-router.delete('/semana/:id', async (req, res, next) => {
-  try {
-    const semana = await PagoModel.findSemanaById(req.params.id);
-    if (!semana) return res.status(404).json({ error: 'No encontrado' });
-    if (fs.existsSync(semana.ruta)) fs.unlinkSync(semana.ruta);
-    await PagoModel.deleteSemana(req.params.id);
-    res.status(204).end();
-  } catch (err) { next(err); }
+router.delete('/semana/:id', async (req, res) => {
+  const semana = await PagoModel.deleteSemana(req.empresaId, req.params.id);
+  if (!semana) return res.status(404).json({ error: 'No encontrado' });
+  if (fs.existsSync(absoluta(semana.ruta))) fs.unlinkSync(absoluta(semana.ruta));
+  res.status(204).end();
 });
 
 module.exports = router;
