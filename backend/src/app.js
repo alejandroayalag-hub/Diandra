@@ -30,6 +30,7 @@ app.get('/api/health', (req, res) => res.json({ ok: true }));
 
 app.use('/api/empresas', authMiddleware, require('./routes/empresas'));
 app.use('/api/empleados', authMiddleware, empresaMiddleware, require('./routes/empleados'));
+app.use('/api/obligaciones', authMiddleware, require('./routes/obligaciones'));   // del despacho, sin X-Empresa-Id
 app.use('/api/documentos', authMiddleware, require('./routes/documentos'));   // /tipos es compartido; el router aplica empresa al resto
 app.use('/api/contratos', authMiddleware, empresaMiddleware, require('./routes/contratos'));
 app.use('/api/pagos', authMiddleware, empresaMiddleware, require('./routes/pagos'));
