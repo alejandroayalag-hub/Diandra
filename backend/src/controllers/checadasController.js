@@ -1,75 +1,54 @@
 const CheckadaModel = require('../models/checada');
+const EmpleadoModel = require('../models/empleado');
+
+async function dispositivoPorApiKey(req, res) {
+  const apiKey = req.headers['x-api-key'];
+  if (!apiKey) { res.status(401).json({ error: 'Falta x-api-key' }); return null; }
+  const dispositivo = await CheckadaModel.getDispositivo(apiKey);
+  if (!dispositivo) { res.status(401).json({ error: 'Dispositivo no autorizado' }); return null; }
+  return dispositivo;
+}
 
 // Llamado por el agente local con su api_key
-exports.sync = async (req, res, next) => {
-  try {
-    const apiKey = req.headers['x-api-key'];
-    if (!apiKey) return res.status(401).json({ error: 'Falta x-api-key' });
-
-    const dispositivo = await CheckadaModel.getDispositivo(apiKey);
-    if (!dispositivo) return res.status(401).json({ error: 'Dispositivo no autorizado' });
-
-    const { registros } = req.body;
-    if (!Array.isArray(registros) || registros.length === 0)
-      return res.status(400).json({ error: 'Sin registros' });
-
-    const insertadas = await CheckadaModel.syncBatch(dispositivo.id, registros);
-    res.json({ ok: true, insertadas: insertadas.length });
-  } catch (err) { next(err); }
+exports.sync = async (req, res) => {
+  const dispositivo = await dispositivoPorApiKey(req, res);
+  if (!dispositivo) return;
+  const { registros } = req.body;
+  if (!Array.isArray(registros) || registros.length === 0) return res.status(400).json({ error: 'Sin registros' });
+  const insertadas = await CheckadaModel.syncBatch(dispositivo, registros);
+  res.json({ ok: true, insertadas: insertadas.length });
 };
 
-// Checadas de un empleado (panel web)
-exports.getByEmpleado = async (req, res, next) => {
-  try {
-    const { desde, hasta } = req.query;
-    const checadas = await CheckadaModel.findByEmpleado(req.params.empleadoId, { desde, hasta });
-    res.json(checadas);
-  } catch (err) { next(err); }
+exports.getMappings = async (req, res) => {
+  const dispositivo = await dispositivoPorApiKey(req, res);
+  if (!dispositivo) return;
+  res.json(await CheckadaModel.getMappings(dispositivo));
 };
 
-// Mapeos uid_checador → empleado
-exports.getMappings = async (req, res, next) => {
-  try {
-    const apiKey = req.headers['x-api-key'];
-    if (!apiKey) return res.status(401).json({ error: 'Falta x-api-key' });
-    const dispositivo = await CheckadaModel.getDispositivo(apiKey);
-    if (!dispositivo) return res.status(401).json({ error: 'Dispositivo no autorizado' });
-    const mappings = await CheckadaModel.getMappings(dispositivo.id);
-    res.json(mappings);
-  } catch (err) { next(err); }
+// Panel web (auth + empresa)
+exports.getByEmpleado = async (req, res) => {
+  const empleado = await EmpleadoModel.findById(req.empresaId, req.params.empleadoId);
+  if (!empleado) return res.status(404).json({ error: 'Empleado no encontrado' });
+  const { desde, hasta } = req.query;
+  res.json(await CheckadaModel.findByEmpleado(req.empresaId, empleado.id, { desde, hasta }));
 };
 
-// Crear/actualizar mapeo (admin)
-exports.upsertMapping = async (req, res, next) => {
-  try {
-    const { dispositivo_id, empleado_id, uid_checador } = req.body;
-    if (!dispositivo_id || !empleado_id || uid_checador == null)
-      return res.status(400).json({ error: 'Faltan campos: dispositivo_id, empleado_id, uid_checador' });
-    const r = await CheckadaModel.upsertMapping(dispositivo_id, empleado_id, uid_checador);
-    res.status(201).json(r);
-  } catch (err) { next(err); }
+exports.upsertMapping = async (req, res) => {
+  const { dispositivo_id, empleado_id, uid_checador } = req.body;
+  if (!dispositivo_id || !empleado_id || uid_checador == null)
+    return res.status(400).json({ error: 'Faltan campos: dispositivo_id, empleado_id, uid_checador' });
+  const dispositivo = await CheckadaModel.getDispositivoDeEmpresa(req.empresaId, dispositivo_id);
+  const empleado = await EmpleadoModel.findById(req.empresaId, empleado_id);
+  if (!dispositivo || !empleado) return res.status(404).json({ error: 'Dispositivo o empleado no encontrado' });
+  res.status(201).json(await CheckadaModel.upsertMapping(dispositivo.id, empleado.id, uid_checador));
 };
 
-// Todos los mapeos (admin)
-exports.getAllMappings = async (req, res, next) => {
-  try {
-    const mappings = await CheckadaModel.getAllMappings();
-    res.json(mappings);
-  } catch (err) { next(err); }
+exports.getAllMappings = async (req, res) => res.json(await CheckadaModel.getAllMappings(req.empresaId));
+
+exports.deleteMapping = async (req, res) => {
+  const borrado = await CheckadaModel.deleteMapping(req.empresaId, req.params.id);
+  if (!borrado) return res.status(404).json({ error: 'Mapeo no encontrado' });
+  res.status(204).end();
 };
 
-// Eliminar mapeo (admin)
-exports.deleteMapping = async (req, res, next) => {
-  try {
-    await CheckadaModel.deleteMapping(req.params.id);
-    res.status(204).end();
-  } catch (err) { next(err); }
-};
-
-// Listar dispositivos (admin)
-exports.getDispositivos = async (req, res, next) => {
-  try {
-    const dispositivos = await CheckadaModel.getAllDispositivos();
-    res.json(dispositivos);
-  } catch (err) { next(err); }
-};
+exports.getDispositivos = async (req, res) => res.json(await CheckadaModel.getAllDispositivos(req.empresaId));
