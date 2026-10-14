@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: diandra
+      POSTGRES_USER: diandra_user
+      # ponytail: en servidor viene de /home/apps/diandra/.env; el default solo sirve en local.
+      POSTGRES_PASSWORD: ${DIANDRA_DB_PASSWORD:-diandra_local}
+    ports:
+      - "127.0.0.1:5445:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
