@@ -8,23 +8,23 @@ export const deleteDocumento = (id) => api.delete(`/documentos/${id}`);
 export const generarContrato = (empleadoId, datos) =>
   api.post(`/contratos/generar/${empleadoId}`, datos).then(r => r.data);
 
-export const abrirDocumento = async (id, filename) => {
+export const abrirArchivo = async (url, filename) => {
   const ext = filename.split('.').pop().toLowerCase();
   const win = ['pdf', 'jpg', 'jpeg', 'png'].includes(ext) ? window.open('', '_blank') : null;
   try {
-    const res = await api.get(`/documentos/${id}/download`, { responseType: 'blob' });
-    const url = URL.createObjectURL(res.data);
+    const res = await api.get(url, { responseType: 'blob' });
+    const blobUrl = URL.createObjectURL(res.data);
     if (win) {
-      win.location.href = url;
+      win.location.href = blobUrl;
     } else {
       const a = document.createElement('a');
-      a.href = url;
+      a.href = blobUrl;
       a.download = filename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
     }
-    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
   } catch (err) {
     if (win) win.close();
     // Leer el mensaje de error del blob
@@ -36,3 +36,5 @@ export const abrirDocumento = async (id, filename) => {
     }
   }
 };
+
+export const abrirDocumento = (id, filename) => abrirArchivo(`/documentos/${id}/download`, filename);
