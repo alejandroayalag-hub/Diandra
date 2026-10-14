@@ -4,7 +4,13 @@ const { EmpresaModel, normalizarRfc } = require('../models/empresa');
 
 function validar(body) {
   if (!String(body.razon_social || '').trim()) return 'La razón social es obligatoria';
-  if (!normalizarRfc(body.rfc)) return 'RFC inválido (12 caracteres persona moral, 13 persona física)';
+  const rfc = normalizarRfc(body.rfc);
+  if (!rfc) return 'RFC inválido (12 caracteres persona moral, 13 persona física)';
+  if (body.tipo_persona && !['fisica', 'moral'].includes(body.tipo_persona)) return 'Tipo de persona inválido';
+  if (body.tipo_persona === 'moral' && rfc.length !== 12) return 'Persona moral: el RFC lleva 12 caracteres';
+  if (body.tipo_persona === 'fisica' && rfc.length !== 13) return 'Persona física: el RFC lleva 13 caracteres';
+  const monto = body.monto_facturacion;
+  if (monto !== undefined && monto !== null && monto !== '' && !(Number(monto) >= 0)) return 'Monto de facturación inválido';
   return null;
 }
 

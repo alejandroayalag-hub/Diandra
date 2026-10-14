@@ -89,3 +89,43 @@ test('id fuera de rango de integer → 400', async () => {
   const res = await api().get('/api/empresas/99999999999');
   expect(res.status).toBe(400);
 });
+
+describe('ficha de cliente', () => {
+  const ficha = {
+    ...datos, tipo_persona: 'moral', contacto_nombre: 'Luis Ruiz', contacto_telefono: '4521234567',
+    contacto_whatsapp: '4527654321', monto_facturacion: '3500.50', condiciones_pago: 'Mensual, primeros 5 días',
+  };
+
+  test('guarda y devuelve los campos de la ficha', async () => {
+    const res = await api().post('/api/empresas').send(ficha);
+    expect(res.status).toBe(201);
+    expect(res.body).toMatchObject({
+      tipo_persona: 'moral', contacto_nombre: 'Luis Ruiz', contacto_whatsapp: '4527654321',
+      monto_facturacion: '3500.50', condiciones_pago: 'Mensual, primeros 5 días',
+    });
+  });
+
+  test('persona moral con RFC de 13 caracteres → 400', async () => {
+    const res = await api().post('/api/empresas').send({ ...ficha, rfc: 'GOMA800101AB1' });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/12/);
+  });
+
+  test('persona física con RFC de 12 caracteres → 400', async () => {
+    const res = await api().post('/api/empresas').send({ ...ficha, tipo_persona: 'fisica' });
+    expect(res.status).toBe(400);
+  });
+
+  test('tipo de persona inválido → 400', async () => {
+    const res = await api().post('/api/empresas').send({ ...ficha, tipo_persona: 'otra' });
+    expect(res.status).toBe(400);
+  });
+
+  test('monto negativo → 400; monto 0 se guarda como 0; vacío como null', async () => {
+    expect((await api().post('/api/empresas').send({ ...ficha, monto_facturacion: '-5' })).status).toBe(400);
+    const cero = await api().post('/api/empresas').send({ ...ficha, monto_facturacion: 0 });
+    expect(cero.body.monto_facturacion).toBe('0.00');
+    const vacio = await api().put(`/api/empresas/${cero.body.id}`).send({ ...ficha, monto_facturacion: '' });
+    expect(vacio.body.monto_facturacion).toBeNull();
+  });
+});
