@@ -5,137 +5,73 @@ const { tiposDocumentoParaSalida } = require('../constants/documentosSalida');
 
 const TIPOS_SALIDA = ['renuncia', 'despido', 'jubilacion', 'otro'];
 const ESTADOS_SALIDA = ['pendiente', 'en_proceso', 'completado'];
+const estadoInvalido = (res) =>
+  res.status(400).json({ error: `estado inválido. Valores permitidos: ${ESTADOS_SALIDA.join(', ')}` });
 
-// GET /api/salidas
-exports.getAllSalidas = async (req, res, next) => {
-  try {
-    const { estado, empresaId, empleadoId } = req.query;
-
-    if (estado && !ESTADOS_SALIDA.includes(estado)) {
-      return res.status(400).json({ error: `estado inválido. Valores permitidos: ${ESTADOS_SALIDA.join(', ')}` });
-    }
-
-    const filters = {};
-    if (estado) filters.estado = estado;
-    if (empresaId) filters.empresaId = empresaId;
-    if (empleadoId) filters.empleadoId = empleadoId;
-
-    const salidas = await SalidaModel.findAll(filters);
-    res.json(salidas);
-  } catch (err) { next(err); }
+exports.getAllSalidas = async (req, res) => {
+  const { estado, empleadoId } = req.query;
+  if (estado && !ESTADOS_SALIDA.includes(estado)) return estadoInvalido(res);
+  res.json(await SalidaModel.findAll(req.empresaId, { estado, empleadoId }));
 };
 
-// GET /api/salidas/:salidaId
-exports.getSalidaById = async (req, res, next) => {
-  try {
-    const salida = await SalidaModel.findById(req.params.salidaId);
-    if (!salida) return res.status(404).json({ error: 'Salida no encontrada' });
-
-    const documentos = await DocumentoSalidaModel.findBySalidaId(salida.id);
-    res.json({ ...salida, documentos });
-  } catch (err) { next(err); }
+exports.getSalidaById = async (req, res) => {
+  const salida = await SalidaModel.findById(req.empresaId, req.params.salidaId);
+  if (!salida) return res.status(404).json({ error: 'Salida no encontrada' });
+  const documentos = await DocumentoSalidaModel.findBySalidaId(salida.id);
+  res.json({ ...salida, documentos });
 };
 
-// GET /api/salidas/empleado/:empleadoId
-exports.getSalidasByEmpleado = async (req, res, next) => {
-  try {
-    const salidas = await SalidaModel.findByEmpleadoId(req.params.empleadoId);
-    res.json(salidas);
-  } catch (err) { next(err); }
+exports.getSalidasByEmpleado = async (req, res) =>
+  res.json(await SalidaModel.findByEmpleadoId(req.empresaId, req.params.empleadoId));
+
+exports.createSalida = async (req, res) => {
+  const { empleadoId, fechaSalida, tipoSalida, razonSalida, salarioPendiente } = req.body;
+  if (!empleadoId || !fechaSalida || !tipoSalida || !razonSalida) {
+    return res.status(400).json({ error: 'Campos requeridos: empleadoId, fechaSalida, tipoSalida, razonSalida' });
+  }
+  if (!TIPOS_SALIDA.includes(tipoSalida)) {
+    return res.status(400).json({ error: `tipoSalida inválido. Valores permitidos: ${TIPOS_SALIDA.join(', ')}` });
+  }
+  const empleado = await EmpleadoModel.findById(req.empresaId, empleadoId);
+  if (!empleado) return res.status(404).json({ error: 'Empleado no encontrado' });
+  if (empleado.estado === 'inactivo') {
+    return res.status(400).json({ error: 'No se puede crear salida de empleado inactivo' });
+  }
+
+  const salida = await SalidaModel.create(req.empresaId, {
+    empleadoId: empleado.id, fechaSalida, tipoSalida, razonSalida,
+    salarioPendiente: salarioPendiente || 0, createdBy: req.user?.id,
+  });
+
+  // Documentos vacíos; renuncia vs aviso rescisorio depende del tipoSalida
+  await Promise.all(tiposDocumentoParaSalida(tipoSalida).map((tipoDocumento) =>
+    DocumentoSalidaModel.create({ salidaId: salida.id, tipoDocumento, createdBy: req.user?.id })));
+
+  res.status(201).json(salida);
 };
 
-// POST /api/salidas
-exports.createSalida = async (req, res, next) => {
-  try {
-    const { empleadoId, empresaId, fechaSalida, tipoSalida, razonSalida, salarioPendiente } = req.body;
-
-    if (!empleadoId || !empresaId || !fechaSalida || !tipoSalida || !razonSalida) {
-      return res.status(400).json({ error: 'Campos requeridos: empleadoId, empresaId, fechaSalida, tipoSalida, razonSalida' });
-    }
-
-    if (!TIPOS_SALIDA.includes(tipoSalida)) {
-      return res.status(400).json({ error: `tipoSalida inválido. Valores permitidos: ${TIPOS_SALIDA.join(', ')}` });
-    }
-
-    const empleado = await EmpleadoModel.findById(empleadoId);
-    if (!empleado) return res.status(404).json({ error: 'Empleado no encontrado' });
-    if (empleado.estado === 'inactivo') {
-      return res.status(400).json({ error: 'No se puede crear salida de empleado inactivo' });
-    }
-
-    const salida = await SalidaModel.create({
-      empleadoId,
-      empresaId,
-      fechaSalida,
-      tipoSalida,
-      razonSalida,
-      salarioPendiente: salarioPendiente || 0,
-      createdBy: req.user?.id,
-    });
-
-    // Crear documentos de salida vacíos (uno por cada tipo requerido; renuncia
-    // vs aviso rescisorio depende del tipoSalida)
-    await Promise.all(
-      tiposDocumentoParaSalida(tipoSalida).map((tipoDocumento) =>
-        DocumentoSalidaModel.create({
-          salidaId: salida.id,
-          tipoDocumento,
-          createdBy: req.user?.id,
-        })
-      )
-    );
-
-    res.status(201).json(salida);
-  } catch (err) { next(err); }
+exports.updateSalida = async (req, res) => {
+  const { tipoSalida, estado } = req.body;
+  if (tipoSalida && !TIPOS_SALIDA.includes(tipoSalida)) {
+    return res.status(400).json({ error: `tipoSalida inválido. Valores permitidos: ${TIPOS_SALIDA.join(', ')}` });
+  }
+  if (estado && !ESTADOS_SALIDA.includes(estado)) return estadoInvalido(res);
+  const salida = await SalidaModel.update(req.empresaId, req.params.salidaId, req.body);
+  if (!salida) return res.status(404).json({ error: 'Salida no encontrada' });
+  res.json(salida);
 };
 
-// PUT /api/salidas/:salidaId
-exports.updateSalida = async (req, res, next) => {
-  try {
-    const { tipoSalida, estado } = req.body;
-
-    if (tipoSalida && !TIPOS_SALIDA.includes(tipoSalida)) {
-      return res.status(400).json({ error: `tipoSalida inválido. Valores permitidos: ${TIPOS_SALIDA.join(', ')}` });
-    }
-    if (estado && !ESTADOS_SALIDA.includes(estado)) {
-      return res.status(400).json({ error: `estado inválido. Valores permitidos: ${ESTADOS_SALIDA.join(', ')}` });
-    }
-
-    const salida = await SalidaModel.update(req.params.salidaId, req.body);
-    if (!salida) return res.status(404).json({ error: 'Salida no encontrada' });
-
-    res.json(salida);
-  } catch (err) { next(err); }
+exports.deleteSalida = async (req, res) => {
+  const salida = await SalidaModel.findById(req.empresaId, req.params.salidaId);
+  if (!salida) return res.status(404).json({ error: 'Salida no encontrada' });
+  if (salida.estado !== 'pendiente') {
+    return res.status(400).json({ error: 'Solo se pueden eliminar salidas en estado pendiente' });
+  }
+  await SalidaModel.delete(req.empresaId, salida.id); // documentos_salida cae por ON DELETE CASCADE
+  res.status(204).end();
 };
 
-// DELETE /api/salidas/:salidaId
-exports.deleteSalida = async (req, res, next) => {
-  try {
-    const salida = await SalidaModel.findById(req.params.salidaId);
-    if (!salida) return res.status(404).json({ error: 'Salida no encontrada' });
-
-    if (salida.estado !== 'pendiente') {
-      return res.status(400).json({ error: 'Solo se pueden eliminar salidas en estado pendiente' });
-    }
-
-    const documentos = await DocumentoSalidaModel.findBySalidaId(salida.id);
-    await Promise.all(documentos.map((doc) => DocumentoSalidaModel.delete(doc.id)));
-
-    await SalidaModel.delete(req.params.salidaId);
-
-    res.status(204).end();
-  } catch (err) { next(err); }
-};
-
-// GET /api/salidas/estado/:estado
-exports.getSalidasByEstado = async (req, res, next) => {
-  try {
-    const { estado } = req.params;
-    if (!ESTADOS_SALIDA.includes(estado)) {
-      return res.status(400).json({ error: `estado inválido. Valores permitidos: ${ESTADOS_SALIDA.join(', ')}` });
-    }
-
-    const salidas = await SalidaModel.findByEstado(estado);
-    res.json(salidas);
-  } catch (err) { next(err); }
+exports.getSalidasByEstado = async (req, res) => {
+  if (!ESTADOS_SALIDA.includes(req.params.estado)) return estadoInvalido(res);
+  res.json(await SalidaModel.findByEstado(req.empresaId, req.params.estado));
 };

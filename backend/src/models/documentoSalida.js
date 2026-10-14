@@ -1,36 +1,24 @@
 const pool = require('../db/pool');
 
+// create/update/delete/findBySalidaId no filtran empresa: el caller valida la salida o el documento antes.
 const DocumentoSalidaModel = {
-  async findAll(filters = {}) {
-    let query = 'SELECT * FROM documentos_salida';
-    const params = [];
-    const conditions = [];
-
-    if (filters.salidaId) {
-      conditions.push(`salida_id = $${conditions.length + 1}`);
-      params.push(filters.salidaId);
-    }
-    if (filters.tipoDocumento) {
-      conditions.push(`tipo_documento = $${conditions.length + 1}`);
-      params.push(filters.tipoDocumento);
-    }
-    if (filters.estado) {
-      conditions.push(`estado = $${conditions.length + 1}`);
-      params.push(filters.estado);
-    }
-
-    if (conditions.length > 0) {
-      query += ' WHERE ' + conditions.join(' AND ');
-    }
-
-    query += ' ORDER BY created_at DESC';
-
+  async findAll(empresaId, filters = {}) {
+    const params = [empresaId];
+    let query = `SELECT ds.* FROM documentos_salida ds JOIN salidas s ON s.id = ds.salida_id WHERE s.empresa_id = $1`;
+    if (filters.salidaId) { params.push(filters.salidaId); query += ` AND ds.salida_id = $${params.length}`; }
+    if (filters.tipoDocumento) { params.push(filters.tipoDocumento); query += ` AND ds.tipo_documento = $${params.length}`; }
+    if (filters.estado) { params.push(filters.estado); query += ` AND ds.estado = $${params.length}`; }
+    query += ' ORDER BY ds.created_at DESC';
     const { rows } = await pool.query(query, params);
     return rows;
   },
 
-  async findById(id) {
-    const { rows } = await pool.query('SELECT * FROM documentos_salida WHERE id = $1', [id]);
+  async findById(empresaId, id) {
+    const { rows } = await pool.query(
+      `SELECT ds.* FROM documentos_salida ds JOIN salidas s ON s.id = ds.salida_id
+       WHERE s.empresa_id = $1 AND ds.id = $2`,
+      [empresaId, id]
+    );
     return rows[0] || null;
   },
 
@@ -102,7 +90,8 @@ const DocumentoSalidaModel = {
     });
 
     if (Object.keys(updates).length === 0) {
-      return this.findById(id);
+      const { rows } = await pool.query('SELECT * FROM documentos_salida WHERE id = $1', [id]);
+      return rows[0] || null;
     }
 
     const fields = Object.keys(updates);
@@ -124,22 +113,6 @@ const DocumentoSalidaModel = {
     const { rows } = await pool.query(
       'SELECT * FROM documentos_salida WHERE salida_id = $1 ORDER BY created_at DESC',
       [salidaId]
-    );
-    return rows;
-  },
-
-  async findByTipoDocumento(tipoDocumento) {
-    const { rows } = await pool.query(
-      'SELECT * FROM documentos_salida WHERE tipo_documento = $1 ORDER BY created_at DESC',
-      [tipoDocumento]
-    );
-    return rows;
-  },
-
-  async findByEstado(estado) {
-    const { rows } = await pool.query(
-      'SELECT * FROM documentos_salida WHERE estado = $1 ORDER BY created_at DESC',
-      [estado]
     );
     return rows;
   },

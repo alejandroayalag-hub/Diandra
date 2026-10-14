@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { relativa, absoluta } = require('../lib/archivos');
 const DocumentoSalidaModel = require('../models/documentoSalida');
 const SalidaModel = require('../models/salida');
 const EmpleadoModel = require('../models/empleado');
@@ -103,7 +104,7 @@ exports.obtenerDocumentos = async (req, res, next) => {
   try {
     const { salidaId } = req.params;
 
-    const salida = await SalidaModel.findById(salidaId);
+    const salida = await SalidaModel.findById(req.empresaId, salidaId);
     if (!salida) return res.status(404).json({ error: 'Salida no encontrada' });
 
     const documentos = await DocumentoSalidaModel.findBySalidaId(salidaId);
@@ -114,7 +115,7 @@ exports.obtenerDocumentos = async (req, res, next) => {
 // GET /api/documentosSalida/documento/:documentoId
 exports.obtenerDocumentoPorId = async (req, res, next) => {
   try {
-    const documento = await DocumentoSalidaModel.findById(req.params.documentoId);
+    const documento = await DocumentoSalidaModel.findById(req.empresaId, req.params.documentoId);
     if (!documento) return res.status(404).json({ error: 'Documento no encontrado' });
     res.json(documento);
   } catch (err) { next(err); }
@@ -137,7 +138,7 @@ exports.getAllDocumentos = async (req, res, next) => {
     if (tipoDocumento) filters.tipoDocumento = tipoDocumento;
     if (salidaId) filters.salidaId = salidaId;
 
-    const documentos = await DocumentoSalidaModel.findAll(filters);
+    const documentos = await DocumentoSalidaModel.findAll(req.empresaId, filters);
     res.json(documentos);
   } catch (err) { next(err); }
 };
@@ -151,10 +152,10 @@ exports.generarTemplate = async (req, res, next) => {
       return res.status(400).json({ error: `tipo inválido. Valores permitidos: ${TIPOS_DOCUMENTO.join(', ')}` });
     }
 
-    const salida = await SalidaModel.findById(salidaId);
+    const salida = await SalidaModel.findById(req.empresaId, salidaId);
     if (!salida) return res.status(404).json({ error: 'Salida no encontrada' });
 
-    const empleado = await EmpleadoModel.findById(salida.empleado_id);
+    const empleado = await EmpleadoModel.findById(req.empresaId, salida.empleado_id);
     if (!empleado) return res.status(404).json({ error: 'Empleado no encontrado' });
 
     const documentos = await DocumentoSalidaModel.findBySalidaId(salidaId);
@@ -178,15 +179,18 @@ exports.subirEscaneado = async (req, res, next) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No se recibió archivo' });
 
-    const documento = await DocumentoSalidaModel.findById(req.params.documentoId);
-    if (!documento) return res.status(404).json({ error: 'Documento no encontrado' });
+    const documento = await DocumentoSalidaModel.findById(req.empresaId, req.params.documentoId);
+    if (!documento) {
+      fs.unlinkSync(req.file.path);
+      return res.status(404).json({ error: 'Documento no encontrado' });
+    }
 
     if (!documento.template_contenido && !documento.template_url) {
       return res.status(400).json({ error: 'Debe generar el template primero' });
     }
 
     const actualizado = await DocumentoSalidaModel.update(documento.id, {
-      documentoUrl: req.file.path,
+      documentoUrl: relativa(req.file.path),
       documentoNombre: req.file.originalname,
       documentoFechaCarga: new Date(),
       documentoTamano: req.file.size,
@@ -200,15 +204,15 @@ exports.subirEscaneado = async (req, res, next) => {
     const todosCompletados = documentosSalida.length > 0 && documentosSalida.every((d) => d.estado === 'completado');
 
     if (todosCompletados) {
-      const salidaActualizada = await SalidaModel.update(documento.salida_id, {
+      const salidaActualizada = await SalidaModel.update(req.empresaId, documento.salida_id, {
         estado: 'completado',
         documentosFirmados: true,
       });
       if (salidaActualizada) {
-        await EmpleadoModel.update(salidaActualizada.empleado_id, { estado: 'inactivo' });
+        await EmpleadoModel.update(req.empresaId, salidaActualizada.empleado_id, { estado: 'inactivo' });
       }
     } else {
-      await SalidaModel.update(documento.salida_id, { estado: 'en_proceso' });
+      await SalidaModel.update(req.empresaId, documento.salida_id, { estado: 'en_proceso' });
     }
 
     res.json(actualizado);
@@ -218,29 +222,29 @@ exports.subirEscaneado = async (req, res, next) => {
 // GET /api/documentosSalida/:documentoId/descargar-escaneado
 exports.descargarEscaneado = async (req, res, next) => {
   try {
-    const documento = await DocumentoSalidaModel.findById(req.params.documentoId);
+    const documento = await DocumentoSalidaModel.findById(req.empresaId, req.params.documentoId);
     if (!documento || !documento.documento_url) {
       return res.status(404).json({ error: 'Escaneado no encontrado' });
     }
-    if (!fs.existsSync(documento.documento_url)) {
+    if (!fs.existsSync(absoluta(documento.documento_url))) {
       return res.status(404).json({ error: 'El archivo ya no existe en el servidor. Por favor vuelve a subirlo.' });
     }
 
     const safeName = documento.documento_nombre
       ? documento.documento_nombre.replace(/[^\w.\- ]/g, '_')
       : undefined;
-    res.download(path.resolve(documento.documento_url), safeName);
+    res.download(absoluta(documento.documento_url), safeName);
   } catch (err) { next(err); }
 };
 
 // DELETE /api/documentosSalida/:documentoId/escaneado
 exports.eliminarEscaneado = async (req, res, next) => {
   try {
-    const documento = await DocumentoSalidaModel.findById(req.params.documentoId);
+    const documento = await DocumentoSalidaModel.findById(req.empresaId, req.params.documentoId);
     if (!documento) return res.status(404).json({ error: 'Documento no encontrado' });
 
-    if (documento.documento_url && fs.existsSync(documento.documento_url)) {
-      fs.unlinkSync(documento.documento_url);
+    if (documento.documento_url && fs.existsSync(absoluta(documento.documento_url))) {
+      fs.unlinkSync(absoluta(documento.documento_url));
     }
 
     const actualizado = await DocumentoSalidaModel.update(documento.id, {
@@ -253,7 +257,7 @@ exports.eliminarEscaneado = async (req, res, next) => {
       estado: 'template_generado',
     });
 
-    await SalidaModel.update(documento.salida_id, { estado: 'en_proceso' });
+    await SalidaModel.update(req.empresaId, documento.salida_id, { estado: 'en_proceso' });
 
     res.json(actualizado);
   } catch (err) { next(err); }

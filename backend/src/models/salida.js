@@ -1,126 +1,66 @@
 const pool = require('../db/pool');
 
+const EDITABLES = ['fecha_salida', 'tipo_salida', 'razon_salida', 'salario_pendiente', 'estado', 'documentos_firmados'];
+
 const SalidaModel = {
-  async findAll(filters = {}) {
-    let query = 'SELECT * FROM salidas';
-    const params = [];
-    const conditions = [];
-
-    if (filters.empleadoId) {
-      conditions.push(`empleado_id = $${conditions.length + 1}`);
-      params.push(filters.empleadoId);
-    }
-    if (filters.empresaId) {
-      conditions.push(`empresa_id = $${conditions.length + 1}`);
-      params.push(filters.empresaId);
-    }
-    if (filters.estado) {
-      conditions.push(`estado = $${conditions.length + 1}`);
-      params.push(filters.estado);
-    }
-
-    if (conditions.length > 0) {
-      query += ' WHERE ' + conditions.join(' AND ');
-    }
-
+  async findAll(empresaId, filters = {}) {
+    const params = [empresaId];
+    let query = 'SELECT * FROM salidas WHERE empresa_id = $1';
+    if (filters.empleadoId) { params.push(filters.empleadoId); query += ` AND empleado_id = $${params.length}`; }
+    if (filters.estado) { params.push(filters.estado); query += ` AND estado = $${params.length}`; }
     query += ' ORDER BY fecha_salida DESC';
-
     const { rows } = await pool.query(query, params);
     return rows;
   },
 
-  async findById(id) {
-    const { rows } = await pool.query('SELECT * FROM salidas WHERE id = $1', [id]);
+  async findById(empresaId, id) {
+    const { rows } = await pool.query('SELECT * FROM salidas WHERE empresa_id = $1 AND id = $2', [empresaId, id]);
     return rows[0] || null;
   },
 
-  async create(data) {
+  async create(empresaId, data) {
     const {
-      empleadoId,
-      empresaId,
-      fechaSalida,
-      tipoSalida,
-      razonSalida,
-      salarioPendiente = 0,
-      estado = 'pendiente',
-      documentosFirmados = false,
-      createdBy,
+      empleadoId, fechaSalida, tipoSalida, razonSalida,
+      salarioPendiente = 0, estado = 'pendiente', documentosFirmados = false, createdBy,
     } = data;
-
     const { rows } = await pool.query(
       `INSERT INTO salidas
         (empleado_id, empresa_id, fecha_salida, tipo_salida, razon_salida,
          salario_pendiente, estado, documentos_firmados, created_by)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING *`,
-      [
-        empleadoId,
-        empresaId || null,
-        fechaSalida,
-        tipoSalida,
-        razonSalida,
-        salarioPendiente,
-        estado,
-        documentosFirmados,
-        createdBy,
-      ]
+      [empleadoId, empresaId, fechaSalida, tipoSalida, razonSalida, salarioPendiente, estado, documentosFirmados, createdBy]
     );
     return rows[0];
   },
 
-  async update(id, data) {
-    // Lista explícita de campos editables
-    const EDITABLES = [
-      'fecha_salida',
-      'tipo_salida',
-      'razon_salida',
-      'salario_pendiente',
-      'estado',
-      'documentos_firmados',
-    ];
-
+  async update(empresaId, id, data) {
     const updates = {};
     Object.keys(data).forEach((key) => {
-      // Convertir camelCase a snake_case
-      const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
-      if (EDITABLES.includes(snakeKey)) {
-        updates[snakeKey] = data[key];
-      }
+      const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase(); // camelCase → snake_case
+      if (EDITABLES.includes(snakeKey)) updates[snakeKey] = data[key];
     });
-
-    if (Object.keys(updates).length === 0) {
-      return this.findById(id);
-    }
-
     const fields = Object.keys(updates);
-    const values = fields.map((f) => updates[f]);
+    if (!fields.length) return this.findById(empresaId, id);
     const set = fields.map((f, i) => `${f} = $${i + 1}`).join(', ');
-
     const { rows } = await pool.query(
-      `UPDATE salidas SET ${set}, updated_at = NOW() WHERE id = $${fields.length + 1} RETURNING *`,
-      [...values, id]
+      `UPDATE salidas SET ${set}, updated_at = NOW()
+       WHERE empresa_id = $${fields.length + 1} AND id = $${fields.length + 2} RETURNING *`,
+      [...fields.map(f => updates[f]), empresaId, id]
     );
     return rows[0] || null;
   },
 
-  async delete(id) {
-    await pool.query('DELETE FROM salidas WHERE id = $1', [id]);
+  async delete(empresaId, id) {
+    await pool.query('DELETE FROM salidas WHERE empresa_id = $1 AND id = $2', [empresaId, id]);
   },
 
-  async findByEmpleadoId(empleadoId) {
-    const { rows } = await pool.query(
-      'SELECT * FROM salidas WHERE empleado_id = $1 ORDER BY fecha_salida DESC',
-      [empleadoId]
-    );
-    return rows;
+  async findByEmpleadoId(empresaId, empleadoId) {
+    return this.findAll(empresaId, { empleadoId });
   },
 
-  async findByEstado(estado) {
-    const { rows } = await pool.query(
-      'SELECT * FROM salidas WHERE estado = $1 ORDER BY fecha_salida DESC',
-      [estado]
-    );
-    return rows;
+  async findByEstado(empresaId, estado) {
+    return this.findAll(empresaId, { estado });
   },
 };
 
