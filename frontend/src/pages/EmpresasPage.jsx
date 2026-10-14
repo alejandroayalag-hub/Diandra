@@ -30,8 +30,8 @@ export default function EmpresasPage({ onCambio }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-bold text-gray-800">Empresas cliente</h1>
-        <Link to="/empresas/nueva" className="bg-blue-700 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-800">+ Nueva empresa</Link>
+        <h1 className="text-xl font-bold text-gray-800">Clientes</h1>
+        <Link to="/empresas/nueva" className="bg-blue-700 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-800">+ Nuevo cliente</Link>
       </div>
       {empresas.length === 0 ? (
         <div className="bg-white border rounded p-8 text-center">

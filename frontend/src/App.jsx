@@ -11,9 +11,11 @@ import CulturePage from './pages/CulturePage';
 import CultureElementDetailPage from './pages/CultureElementDetailPage';
 import EmpresasPage from './pages/EmpresasPage';
 import EmpresaFormPage from './pages/EmpresaFormPage';
+import ObligacionesPage from './pages/ObligacionesPage';
 import LoginPage from './pages/LoginPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { getEmpresas } from './api/empresas';
+import { getResumenObligaciones } from './api/obligaciones';
 import { getEmpresaActiva, setEmpresaActiva, clearEmpresaActiva } from './empresaActiva';
 
 const linkCls = ({ isActive }) => isActive ? 'text-blue-700 font-medium text-sm' : 'text-gray-600 hover:text-blue-700 text-sm';
@@ -25,6 +27,8 @@ function Layout() {
   const [empresas, setEmpresas] = useState(null);
   const [activa, setActiva] = useState(getEmpresaActiva());
   const [errorEmpresas, setErrorEmpresas] = useState('');
+  const [resumen, setResumen] = useState(null);
+  useEffect(() => { getResumenObligaciones().then(setResumen).catch(() => setResumen(null)); }, [location.pathname]);
 
   const cargarEmpresas = useCallback(async () => {
     let lista;
@@ -68,7 +72,8 @@ function Layout() {
     navigate('/login');
   }
 
-  const enEmpresas = location.pathname.startsWith('/empresas');
+  // Clientes y obligaciones son del despacho: no requieren empresa activa.
+  const enEmpresas = /^\/(empresas|obligaciones)/.test(location.pathname);
   const bloqueado = !activa && !enEmpresas;
 
   return (
@@ -86,7 +91,8 @@ function Layout() {
           <NavLink to="/cultura" className={linkCls}>Cultura</NavLink>
         </div>
         <div className="flex items-center gap-3">
-          <NavLink to="/empresas" className={linkCls}>Empresas</NavLink>
+          <NavLink to="/obligaciones" className={linkCls}>Obligaciones</NavLink>
+          <NavLink to="/empresas" className={linkCls}>Clientes</NavLink>
           <select aria-label="Empresa activa" value={activa?.id || ''} onChange={e => cambiarEmpresa(e.target.value)}
             className="border border-gray-300 rounded px-2 py-1 text-sm max-w-56">
             <option value="" disabled>Elige empresa…</option>
@@ -99,6 +105,14 @@ function Layout() {
         </div>
       </nav>
       {errorEmpresas && <div className="bg-red-50 border-b border-red-100 px-6 py-1.5 text-sm text-red-700">{errorEmpresas}</div>}
+      {resumen && (resumen.vencidas > 0 || resumen.esta_semana > 0) && (
+        <NavLink to="/obligaciones" className="block bg-amber-50 border-b border-amber-100 px-6 py-1.5 text-sm text-amber-900 hover:bg-amber-100">
+          Obligaciones:{' '}
+          {resumen.vencidas > 0 && <strong className="text-red-700">{resumen.vencidas} vencida{resumen.vencidas > 1 ? 's' : ''}</strong>}
+          {resumen.vencidas > 0 && resumen.esta_semana > 0 && ' · '}
+          {resumen.esta_semana > 0 && <strong>{resumen.esta_semana} vence{resumen.esta_semana > 1 ? 'n' : ''} esta semana</strong>}
+        </NavLink>
+      )}
       {activa && !enEmpresas && (
         <div className="bg-blue-50 border-b border-blue-100 px-6 py-1.5 text-sm text-blue-900">
           Empresa: <strong>{activa.razon_social}</strong>
@@ -119,6 +133,7 @@ function Layout() {
             <Route path="/salidas/:id" element={<SalidaDetailPage />} />
             <Route path="/cultura" element={<CulturePage />} />
             <Route path="/cultura/:culturaId" element={<CultureElementDetailPage />} />
+            <Route path="/obligaciones" element={<ObligacionesPage />} />
             <Route path="/empresas" element={<EmpresasPage onCambio={cargarEmpresas} />} />
             <Route path="/empresas/nueva" element={<EmpresaFormPage onCambio={cargarEmpresas} />} />
             <Route path="/empresas/:id/editar" element={<EmpresaFormPage onCambio={cargarEmpresas} />} />
