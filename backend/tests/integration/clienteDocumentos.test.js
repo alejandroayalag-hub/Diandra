@@ -84,6 +84,14 @@ describe('CSF → obligaciones', () => {
     const otra = await subir(e.id, 'csf', csfPdf());
     expect(otra.body.nuevas.map(o => o.descripcion)).toEqual(['Pago definitivo mensual de IVA']);
     expect(otra.body.existentes.find(o => o.descripcion === 'Declaración de proveedores de IVA').dia).toBe(30);
+
+    // La vigencia viene de la CSF recién leída, no de lo guardado.
+    await pool.query("UPDATE empresa_obligaciones SET fecha_fin = '2020-01-01', vencimiento_texto = 'viejo'");
+    const nueva = await subir(e.id, 'csf', csfPdf());
+    const ex = nueva.body.existentes.find(o => o.descripcion === 'Declaración de proveedores de IVA');
+    expect(ex.fecha_fin).not.toBe('2020-01-01');
+    expect(ex.vencimiento_texto).not.toBe('viejo');
+    expect(ex.dia).toBe(30);
   });
 
   test('validación de obligaciones → 400', async () => {

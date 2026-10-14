@@ -134,3 +134,7 @@ describe('validaciones y fechas', () => {
     expect(finDeMes('2026-12-15', 2)).toBe('2027-02-28');
   });
 });
+
+test('vencimientos sin hasta → []', () => {
+  expect(vencimientos({ periodicidad: 'mensual', dia: 17, alta: '2026-10-14' }, undefined)).toEqual([]);
+});

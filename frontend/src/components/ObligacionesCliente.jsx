@@ -25,15 +25,26 @@ export default function ObligacionesCliente({ empresaId, revision, onCerrar }) {
 
   useEffect(() => {
     if (!revision) return;
-    setFilas([ // eslint-disable-line react-hooks/set-state-in-effect
-      ...revision.nuevas.map(o => ({ ...o, incluir: true, nota: 'nueva' })),
+    // CSF sin nada legible: no abrir la tabla (un clic desactivaría todo); solo se muestra el aviso.
+    if (!revision.nuevas.length && !revision.existentes.length) { setFilas(null); return; } // eslint-disable-line react-hooks/set-state-in-effect
+    // Con aviso (CSF dudosa) se conserva lo existente y no se agrega nada sin que Diana lo marque.
+    const dudosa = !!revision.aviso;
+    setFilas([
+      ...revision.nuevas.map(o => ({ ...o, incluir: !dudosa, nota: 'nueva' })),
       ...revision.existentes.map(o => ({ ...o, incluir: true })),
-      ...revision.desaparecidas.map(o => ({ ...o, incluir: false, nota: 'ya no aparece en la CSF' })),
+      // Sin vencimiento_texto = agregada a mano: nunca estuvo en una CSF, no se desactiva por defecto.
+      ...revision.desaparecidas.map(o => (o.vencimiento_texto
+        ? { ...o, incluir: dudosa, nota: 'ya no aparece en la CSF' }
+        : { ...o, incluir: true, nota: 'agregada a mano' })),
     ]);
   }, [revision]);
 
   const cambiar = (i, k, v) => setFilas(fs => fs.map((f, j) => (j === i ? { ...f, [k]: v } : f)));
   const cerrar = () => { setFilas(null); setError(''); onCerrar?.(); };
+  const cancelar = () => {
+    if (revision && !confirm('¿Descartar la revisión de la CSF?')) return;
+    cerrar();
+  };
 
   async function guardar() {
     const lista = filas.filter(f => f.incluir).map(f => ({
@@ -54,6 +65,7 @@ export default function ObligacionesCliente({ empresaId, revision, onCerrar }) {
   if (!filas) {
     return (
       <div className="text-sm mt-3">
+        {revision?.aviso && <p className="mb-2 bg-amber-50 border border-amber-200 text-amber-900 rounded px-3 py-2">{revision.aviso}</p>}
         {actuales.length === 0 ? <p className="text-gray-500">Sin obligaciones. Sube la CSF o agrégalas a mano.</p> : (
           <ul className="divide-y border rounded">
             {actuales.map(o => (
@@ -82,7 +94,7 @@ export default function ObligacionesCliente({ empresaId, revision, onCerrar }) {
               <tr key={f.id ?? `n${i}`} className="align-top border-t">
                 <td className="p-1"><input type="checkbox" checked={f.incluir} onChange={e => cambiar(i, 'incluir', e.target.checked)} aria-label="Incluir" /></td>
                 <td className="p-1">
-                  {f.id || f.vencimiento_texto !== undefined
+                  {f.id
                     ? <span className="font-medium">{f.descripcion}</span>
                     : <input value={f.descripcion} onChange={e => cambiar(i, 'descripcion', e.target.value)} placeholder="Descripción" className={`${input} w-full`} />}
                   {f.nota && <span className="ml-2 text-xs text-amber-700">({f.nota})</span>}
@@ -117,7 +129,7 @@ export default function ObligacionesCliente({ empresaId, revision, onCerrar }) {
           className="text-blue-700 hover:underline">+ Agregar obligación</button>
         <button type="button" disabled={guardando} onClick={guardar}
           className="bg-blue-700 text-white px-3 py-1.5 rounded hover:bg-blue-800 disabled:opacity-50">{guardando ? 'Guardando…' : 'Confirmar obligaciones'}</button>
-        <button type="button" onClick={cerrar} className="text-gray-600">Cancelar</button>
+        <button type="button" onClick={cancelar} className="text-gray-600">Cancelar</button>
       </div>
     </div>
   );

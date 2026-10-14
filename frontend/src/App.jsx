@@ -28,7 +28,12 @@ function Layout() {
   const [activa, setActiva] = useState(getEmpresaActiva());
   const [errorEmpresas, setErrorEmpresas] = useState('');
   const [resumen, setResumen] = useState(null);
-  useEffect(() => { getResumenObligaciones().then(setResumen).catch(() => setResumen(null)); }, [location.pathname]);
+  useEffect(() => {
+    const cargar = () => getResumenObligaciones().then(setResumen).catch(() => setResumen(null));
+    cargar();
+    window.addEventListener('obligaciones-cambio', cargar);
+    return () => window.removeEventListener('obligaciones-cambio', cargar);
+  }, [location.pathname]);
 
   const cargarEmpresas = useCallback(async () => {
     let lista;

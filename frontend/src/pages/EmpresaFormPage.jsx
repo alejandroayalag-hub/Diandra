@@ -11,6 +11,9 @@ const CAMPOS = ['tipo_persona', 'razon_social', 'rfc', 'representante_legal', 'r
 const RFC_RE = /^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/;
 const inputCls = 'mt-1 w-full border border-gray-300 rounded px-3 py-2 text-sm';
 
+// Enter dentro de las secciones con carga/revisión no debe enviar la ficha (perdería la revisión de la CSF).
+const sinEnter = e => { if (e.key === 'Enter' && e.target.tagName === 'INPUT') e.preventDefault(); };
+
 function Seccion({ titulo, children }) {
   return (
     <section className="border-t border-gray-200 pt-4 mt-5">
@@ -105,7 +108,7 @@ export default function EmpresaFormPage({ onCambio }) {
 
       {form.tipo_persona === 'moral' && (
         <Seccion titulo="Acta constitutiva">
-          {id ? <DocumentoCliente empresaId={id} tipo="acta" /> : sinId}
+          {id ? <div onKeyDown={sinEnter}><DocumentoCliente empresaId={id} tipo="acta" /></div> : sinId}
         </Seccion>
       )}
 
@@ -121,10 +124,10 @@ export default function EmpresaFormPage({ onCambio }) {
 
       <Seccion titulo="Constancia de situación fiscal y obligaciones">
         {id ? (
-          <>
+          <div onKeyDown={sinEnter}>
             <DocumentoCliente empresaId={id} tipo="csf" accept=".pdf" onSubido={setRevisionCsf} />
             <ObligacionesCliente empresaId={id} revision={revisionCsf} onCerrar={() => setRevisionCsf(null)} />
-          </>
+          </div>
         ) : sinId}
       </Seccion>
 

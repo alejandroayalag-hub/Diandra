@@ -38,7 +38,7 @@ function etiqueta(periodicidad, anio, idx) {
 // El alta como inicio evita cientos de "vencidas" de clientes con años en el SAT.
 function vencimientos(ob, hasta) {
   const n = MESES_POR_PERIODO[ob.periodicidad];
-  if (!n || !ob.dia || (n === 12 && !ob.mes)) return [];
+  if (!hasta || !n || !ob.dia || (n === 12 && !ob.mes)) return [];
   // Un periodo de antes de (año de alta − 1) no puede vencer después del alta.
   const anioInicio = Math.max(Number((ob.fecha_inicio || ob.alta).slice(0, 4)), Number(ob.alta.slice(0, 4)) - 1);
   const out = [];

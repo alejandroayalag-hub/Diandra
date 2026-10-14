@@ -130,3 +130,39 @@ describe('cumplimientos', () => {
     expect(r.status).toBe(403);
   });
 });
+
+describe('calendario: rangos y entradas', () => {
+  test('rango mayor a 3 años → 400', async () => {
+    const r = await api().get('/api/obligaciones/calendario?desde=2020-01-01&hasta=2024-01-01');
+    expect(r.status).toBe(400);
+    expect(r.body.error).toMatch(/3 años/);
+  });
+
+  test('un solo extremo: el faltante se deriva del dado', async () => {
+    fijarHoy('2026-11-20');
+    const e = await crearEmpresa();
+    await crearObligacion(e.id);
+    // Solo hasta: desde = primer día de su mes.
+    let r = await api().get('/api/obligaciones/calendario?hasta=2026-12-31');
+    expect(r.body.map(i => i.periodo)).toEqual(['2026-09', '2026-10', '2026-11']);
+    // Solo desde lejano: hasta = fin del mes siguiente a desde, no de hoy.
+    r = await api().get('/api/obligaciones/calendario?desde=2027-02-01');
+    expect(r.status).toBe(200);
+    expect(r.body.map(i => i.periodo)).toEqual(['2026-09', '2026-10', '2027-01', '2027-02']);
+  });
+
+  test('alta es la fecha de México', async () => {
+    const e = await crearEmpresa();
+    const { rows } = await pool.query(
+      `INSERT INTO empresa_obligaciones (empresa_id, descripcion, periodicidad, dia, created_at)
+       VALUES ($1,'X','mensual',17,'2026-10-15 03:00:00+00') RETURNING id`, [e.id]);
+    expect((await require('../../src/models/obligacion').findById(rows[0].id)).alta).toBe('2026-10-14');
+  });
+
+  test('POST no multipart → 400 (no 500)', async () => {
+    const e = await crearEmpresa();
+    const ob = await crearObligacion(e.id);
+    const r = await api().post(`/api/obligaciones/${ob}/cumplimientos`).send({});
+    expect(r.status).toBe(400);
+  });
+});

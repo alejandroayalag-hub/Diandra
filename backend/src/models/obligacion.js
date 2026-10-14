@@ -2,7 +2,7 @@ const pool = require('../db/pool');
 
 // Fechas como texto 'YYYY-MM-DD' (ver lib/vencimientos). `alta` = día en que se dio de alta en el sistema.
 const COLS = `o.id, o.empresa_id, o.descripcion, o.vencimiento_texto, o.periodicidad, o.dia, o.mes,
-  o.fecha_inicio::text AS fecha_inicio, o.fecha_fin::text AS fecha_fin, o.activa, o.created_at::date::text AS alta`;
+  o.fecha_inicio::text AS fecha_inicio, o.fecha_fin::text AS fecha_fin, o.activa, (o.created_at AT TIME ZONE 'America/Mexico_City')::date::text AS alta`;
 
 const ObligacionModel = {
   async porEmpresa(empresaId) {
@@ -15,10 +15,14 @@ const ObligacionModel = {
   async comparar(empresaId, leidas) {
     const actuales = await this.porEmpresa(empresaId);
     const actualesPorDesc = new Set(actuales.map(o => o.descripcion));
-    const leidasPorDesc = new Set(leidas.map(o => o.descripcion));
+    const leidasPorDesc = new Map(leidas.map(o => [o.descripcion, o]));
     return {
       nuevas: leidas.filter(o => !actualesPorDesc.has(o.descripcion)),
-      existentes: actuales.filter(o => leidasPorDesc.has(o.descripcion)),
+      // Vigencia y texto salen de la CSF recién leída (puede traer fecha nueva); el resto, de lo ya guardado.
+      existentes: actuales.filter(o => leidasPorDesc.has(o.descripcion)).map(o => {
+        const l = leidasPorDesc.get(o.descripcion);
+        return { ...o, fecha_inicio: l.fecha_inicio ?? null, fecha_fin: l.fecha_fin ?? null, vencimiento_texto: l.vencimiento_texto ?? null };
+      }),
       desaparecidas: actuales.filter(o => !leidasPorDesc.has(o.descripcion)),
     };
   },

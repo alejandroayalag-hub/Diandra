@@ -38,6 +38,7 @@ export default function ObligacionesPage() {
       await registrarCumplimiento(i.obligacion_id, i.periodo, captura.fecha, captura.acuse);
       setCaptura(null);
       cargar();
+      window.dispatchEvent(new Event('obligaciones-cambio')); // refresca el aviso del Layout
     } catch (err) {
       alert(err.response?.data?.error || 'No se pudo registrar.');
     } finally {
@@ -47,7 +48,7 @@ export default function ObligacionesPage() {
 
   async function deshacer(i) {
     if (!confirm(`¿Deshacer la presentación de "${i.descripcion}" (${i.periodo})? Se borra el acuse.`)) return;
-    try { await deshacerCumplimiento(i.cumplimiento_id); cargar(); } catch { alert('No se pudo deshacer.'); }
+    try { await deshacerCumplimiento(i.cumplimiento_id); cargar(); window.dispatchEvent(new Event('obligaciones-cambio')); } catch { alert('No se pudo deshacer.'); }
   }
 
   const setF = (k) => (e) => setFiltro(f => ({ ...f, [k]: e.target.value }));

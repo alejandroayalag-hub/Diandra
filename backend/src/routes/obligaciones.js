@@ -20,11 +20,15 @@ async function calendario(empresaId, desde, hasta, hoy) {
 
 router.get('/calendario', async (req, res) => {
   const hoy = hoyMx();
-  const desde = req.query.desde || `${hoy.slice(0, 7)}-01`;
-  const hasta = req.query.hasta || finDeMes(hoy, 1);
-  if (!FECHA_RE.test(desde) || !FECHA_RE.test(hasta) || desde > hasta) {
+  const { desde: d, hasta: h } = req.query;
+  if ((d && !FECHA_RE.test(d)) || (h && !FECHA_RE.test(h))) {
     return res.status(400).json({ error: 'Rango de fechas inválido (AAAA-MM-DD, desde ≤ hasta)' });
   }
+  // El extremo faltante se deriva del dado; sin ninguno, mes actual y siguiente.
+  const desde = d || (h ? `${h.slice(0, 7)}-01` : `${hoy.slice(0, 7)}-01`);
+  const hasta = h || finDeMes(d || hoy, 1);
+  if (desde > hasta) return res.status(400).json({ error: 'Rango de fechas inválido (AAAA-MM-DD, desde ≤ hasta)' });
+  if (hasta > sumarDias(desde, 1096)) return res.status(400).json({ error: 'Rango demasiado largo (máximo 3 años)' });
   const { empresa_id: empresaId } = req.query;
   if (empresaId && !ID_RE.test(empresaId)) return res.status(400).json({ error: 'empresa_id inválido' });
   res.json(await calendario(empresaId ? Number(empresaId) : null, desde, hasta, hoy));
@@ -44,8 +48,9 @@ router.post('/:id/cumplimientos', requireRole('admin', 'rh'), upload.single('acu
   if (!ID_RE.test(req.params.id)) return fallar(400, 'Parámetro inválido');
   const ob = await ObligacionModel.findById(req.params.id);
   if (!ob) return fallar(404, 'Obligación no encontrada');
-  const { periodo } = req.body;
-  const fecha = req.body.fecha_presentacion || hoyMx();
+  const body = req.body || {};
+  const { periodo } = body;
+  const fecha = body.fecha_presentacion || hoyMx();
   if (!periodoValido(ob.periodicidad, periodo)) return fallar(400, 'Periodo inválido para esta obligación');
   if (!FECHA_RE.test(fecha)) return fallar(400, 'Fecha de presentación inválida (AAAA-MM-DD)');
   try {
