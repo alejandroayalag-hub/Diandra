@@ -1,0 +1,32 @@
+// Texto como lo devuelve pdf-parse para una CSF real (estructura copiada de una de septiembre 2026; datos ficticios).
+const CSF_LINEAS = [
+  'CONSTANCIA DE SITUACIÓN FISCAL',
+  'Página 2 de 3',
+  'Regímenes:',
+  'RégimenFecha InicioFecha Fin',
+  'Régimen General de Ley Personas Morales01/01/2022',
+  'Obligaciones:',
+  'Descripción de la Obligación Descripción VencimientoFecha InicioFecha Fin',
+  'Declaración de proveedores de IVAA mástardarelúltimodíadelmesinmediato',
+  'posterioral periodoquecorresponda.',
+  '28/07/2014',
+  'Entero de retenciones mensuales de ISR por sueldos y salariosAmástardareldía17delmesinmediato',
+  'posterioral periodoquecorresponda.',
+  '28/07/2014',
+  'Pago provisional mensual de ISR personas morales régimen',
+  'general',
+  'Amástardareldía17delmesinmediato',
+  'posterioral periodoquecorresponda.',
+  '01/01/2022',
+  'Declaración anual de ISR del ejercicio Personas morales.Dentrodelostresmesessiguientesalcierre',
+  'delejercicio.',
+  '01/01/2022',
+  'Pago definitivo mensual de IVA.Amástardareldía17delmesinmediato',
+  'posterioral periodoquecorresponda.',
+  '01/01/2022 31/12/2030',
+  'Susdatospersonalessonincorporadosy protegidosenlossistemasdelSAT',
+  'CadenaOriginalSello:',
+  '||2026/09/01 17:55:35|AUR010101AB1|CONSTANCIA DE SITUACIÓN FISCAL',
+];
+
+module.exports = { CSF_LINEAS };
