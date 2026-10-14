@@ -1,4 +1,4 @@
-# Agente Checador RH ATA
+# Agente Checador DIANDRA
 
 ## Requisitos
 - Node.js 18+ instalado en la PC (https://nodejs.org)

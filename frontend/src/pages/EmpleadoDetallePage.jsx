@@ -6,9 +6,7 @@ import { getPagosEmpleado } from '../api/pagos';
 import { descargarFormato } from '../api/formatos';
 import { getSalidasByEmpleado, createSalida } from '../api/salidas';
 import TabAsistencia from '../components/TabAsistencia';
-
-const CONTRATOS_URL = import.meta.env.VITE_CONTRATOS_URL || 'http://62.238.3.136:4001';
-const EMPRESA_ID = 1;
+import GeneradorContratoModal from '../components/GeneradorContratoModal';
 
 const ESTATUS_DOC_COLOR = {
   completo: 'bg-green-100 text-green-800',
@@ -38,6 +36,7 @@ export default function EmpleadoDetallePage() {
   const [pagos, setPagos] = useState([]);
   const [salidaActiva, setSalidaActiva] = useState(null);
   const [showBajaModal, setShowBajaModal] = useState(false);
+  const [showContrato, setShowContrato] = useState(false);
   const [bajaForm, setBajaForm] = useState({ tipoSalida: 'renuncia', fechaSalida: hoyISO(), razonSalida: '', salarioPendiente: '' });
   const [bajaError, setBajaError] = useState('');
   const [creandoBaja, setCreandoBaja] = useState(false);
@@ -69,7 +68,6 @@ export default function EmpleadoDetallePage() {
     try {
       const nuevaSalida = await createSalida({
         empleadoId: id,
-        empresaId: EMPRESA_ID,
         tipoSalida: bajaForm.tipoSalida,
         fechaSalida: bajaForm.fechaSalida,
         razonSalida: bajaForm.razonSalida.trim(),
@@ -153,10 +151,10 @@ export default function EmpleadoDetallePage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <a href={CONTRATOS_URL} target="_blank" rel="noreferrer"
+          <button onClick={() => setShowContrato(true)}
             className="bg-blue-700 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-800 flex items-center gap-1">
             📄 Generar contrato
-          </a>
+          </button>
           <Link to={`/empleados/${id}/editar`}
             className="border border-gray-300 px-3 py-1.5 rounded text-sm hover:bg-gray-100">
             Editar
@@ -246,10 +244,10 @@ export default function EmpleadoDetallePage() {
                             {doc.filename}
                           </button>
                           {tipo.nombre === 'Contrato de trabajo' && (
-                            <a href={CONTRATOS_URL} target="_blank" rel="noreferrer"
+                            <button onClick={() => setShowContrato(true)}
                               className="text-purple-600 text-xs hover:underline border border-purple-300 rounded px-2 py-0.5">
                               Re-generar
-                            </a>
+                            </button>
                           )}
                           <button onClick={() => handleDeleteDoc(doc.id)}
                             className="text-red-500 text-xs hover:underline">
@@ -264,10 +262,10 @@ export default function EmpleadoDetallePage() {
                               onChange={e => handleUpload(tipo.id, e.target.files[0])} />
                           </label>
                           <span className="text-gray-300">|</span>
-                          <a href={CONTRATOS_URL} target="_blank" rel="noreferrer"
+                          <button onClick={() => setShowContrato(true)}
                             className="text-sm text-purple-700 hover:underline font-medium">
                             Generar contrato
-                          </a>
+                          </button>
                         </div>
                       ) : (
                         <label className="cursor-pointer text-sm text-blue-700 hover:underline">
@@ -402,6 +400,13 @@ export default function EmpleadoDetallePage() {
             </div>
           </div>
         </div>
+      )}
+      {showContrato && (
+        <GeneradorContratoModal
+          empleado={empleado}
+          onClose={() => setShowContrato(false)}
+          onSuccess={() => { getDocumentos(id).then(setDocumentos); }}
+        />
       )}
     </div>
   );

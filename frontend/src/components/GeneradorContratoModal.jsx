@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import CampoLista from './CampoLista';
 import { generarContrato } from '../api/documentos';
+import { getEmpresa } from '../api/empresas';
+import { getEmpresaActiva } from '../empresaActiva';
 
 const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 
@@ -216,6 +218,22 @@ export default function GeneradorContratoModal({ empleado, onClose, onSuccess })
 
   const [obligaciones, setObligaciones] = useState(['']);
   const [prohibiciones, setProhibiciones] = useState(['']);
+
+  // Datos del patrón desde la empresa activa; editables por si algún contrato los requiere distintos.
+  useEffect(() => {
+    const activa = getEmpresaActiva();
+    if (!activa) return;
+    getEmpresa(activa.id).then(e => setForm(f => ({
+      ...f,
+      nombre_patron:     f.nombre_patron     || e.representante_legal || '',
+      razon_social:      f.razon_social      || e.razon_social        || '',
+      direccion_empresa: f.direccion_empresa || e.domicilio           || '',
+      colonia_empresa:   f.colonia_empresa   || e.colonia             || '',
+      cp_empresa:        f.cp_empresa        || e.cp                  || '',
+      ciudad:            f.ciudad            || e.ciudad              || '',
+      giro_empresa:      f.giro_empresa      || e.giro                || '',
+    })));
+  }, []);
   const [sugerenciasObl, setSugerenciasObl] = useState(new Set());
   const [sugerenciasProh, setSugerenciasProh] = useState(new Set());
 

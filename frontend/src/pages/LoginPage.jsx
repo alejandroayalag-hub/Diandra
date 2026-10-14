@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import logoAta from '../assets/logo-ata.png';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -30,9 +29,8 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="bg-white rounded-xl shadow-md p-8 w-full max-w-sm">
         <div className="flex flex-col items-center mb-6">
-          <img src={logoAta} alt="Grupo ATA" className="h-16 object-contain mb-2" />
-          <h1 className="font-bold text-gray-800 text-lg">Recursos Humanos</h1>
-          <p className="text-xs text-gray-400 uppercase tracking-widest">Grupo ATA</p>
+          <h1 className="font-bold text-gray-800 text-2xl tracking-wide">DIANDRA</h1>
+          <p className="text-xs text-gray-400 uppercase tracking-widest">Recursos Humanos</p>
         </div>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
@@ -42,7 +40,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="admin@grupoata.com"
+              placeholder="correo@diandra.com"
               required
             />
           </div>

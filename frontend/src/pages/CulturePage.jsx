@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getCulturasByEmpresa, createCultura, deleteCultura } from '../api/culturas';
-
-const EMPRESA_ID = 1;
+import { getCulturas, createCultura, deleteCultura } from '../api/culturas';
 
 const TIPOS_CULTURA = ['mision', 'vision', 'valores', 'codigo_conducta', 'politicas', 'otro'];
 
@@ -40,7 +38,7 @@ export default function CulturePage() {
     let cancelado = false;
     setLoading(true);
     setError('');
-    getCulturasByEmpresa(EMPRESA_ID)
+    getCulturas()
       .then(data => { if (!cancelado) setCulturas(data); })
       .catch(() => { if (!cancelado) setError('No se pudieron cargar los elementos de cultura. Intente de nuevo.'); })
       .finally(() => { if (!cancelado) setLoading(false); });
@@ -61,7 +59,7 @@ export default function CulturePage() {
     setFormError('');
     setCreando(true);
     try {
-      const nueva = await createCultura({ empresaId: EMPRESA_ID, ...form });
+      const nueva = await createCultura(form);
       setCulturas(prev => [...prev, nueva]);
       setShowForm(false);
     } catch (err) {

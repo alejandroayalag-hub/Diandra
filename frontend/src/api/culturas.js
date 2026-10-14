@@ -1,6 +1,6 @@
 import api from './client';
 
-export const getCulturasByEmpresa = (empresaId) => api.get(`/culturas/empresa/${empresaId}`).then(r => r.data);
+export const getCulturas = () => api.get('/culturas').then(r => r.data);
 export const getCultura = (culturaId) => api.get(`/culturas/${culturaId}`).then(r => r.data);
 export const createCultura = (data) => api.post('/culturas', data).then(r => r.data);
 export const updateCultura = (culturaId, data) => api.put(`/culturas/${culturaId}`, data).then(r => r.data);
