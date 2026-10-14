@@ -94,6 +94,14 @@ describe('armarCalendario', () => {
     const r = armarCalendario([base, otra], [], { desde: '2026-11-01', hasta: '2026-11-30', hoy: '2026-10-01' });
     expect(r.map(i => i.razon_social)).toEqual(['AAA', 'ACME']);
   });
+
+  test('vencidas anteriores a "desde" se incluyen; presentadas anteriores a "desde" se excluyen', () => {
+    const r = armarCalendario([base], [], { desde: '2026-12-01', hasta: '2026-12-31', hoy: '2026-12-20' });
+    expect(r.map(i => [i.periodo, i.estado])).toEqual([['2026-09', 'vencida'], ['2026-10', 'vencida'], ['2026-11', 'vencida']]);
+    const r2 = armarCalendario([base], [{ id: 6, obligacion_id: 1, periodo: '2026-10', fecha_presentacion: '2026-11-10', acuse: null }],
+      { desde: '2026-12-01', hasta: '2026-12-31', hoy: '2026-12-20' });
+    expect(r2.map(i => [i.periodo, i.estado])).toEqual([['2026-09', 'vencida'], ['2026-11', 'vencida']]);
+  });
 });
 
 describe('validaciones y fechas', () => {
