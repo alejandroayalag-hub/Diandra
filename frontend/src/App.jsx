@@ -83,19 +83,19 @@ function Layout() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200 px-6 py-2 flex flex-wrap items-center gap-4 shadow-sm">
+      <nav className="bg-white border-b border-gray-200 px-4 sm:px-6 py-2 flex flex-wrap items-center gap-4 shadow-sm">
         <div className="flex flex-col leading-tight">
           <span className="font-bold text-gray-800 text-base tracking-wide">DIANDRA</span>
           <span className="text-xs text-gray-500 uppercase tracking-widest">Recursos Humanos</span>
         </div>
-        <div className={`ml-6 flex gap-4 flex-1 ${activa ? '' : 'pointer-events-none opacity-40'}`}>
+        <div className={`sm:ml-6 flex flex-wrap gap-x-4 gap-y-1 flex-1 ${activa ? '' : 'pointer-events-none opacity-40'}`}>
           <NavLink to="/" end className={linkCls}>Empleados</NavLink>
           <NavLink to="/pagos" className={linkCls}>Pagos</NavLink>
           <NavLink to="/checador/mapeo" className={linkCls}>Checador</NavLink>
           <NavLink to="/formatos" className={linkCls}>Formatos</NavLink>
           <NavLink to="/cultura" className={linkCls}>Cultura</NavLink>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <NavLink to="/obligaciones" className={linkCls}>Obligaciones</NavLink>
           <NavLink to="/empresas" className={linkCls}>Clientes</NavLink>
           <select aria-label="Empresa activa" value={activa?.id || ''} onChange={e => cambiarEmpresa(e.target.value)}
@@ -123,7 +123,7 @@ function Layout() {
           Empresa: <strong>{activa.razon_social}</strong>
         </div>
       )}
-      <main className="max-w-6xl mx-auto p-6" key={activa?.id || 'sin-empresa'}>
+      <main className="max-w-6xl mx-auto p-4 sm:p-6" key={activa?.id || 'sin-empresa'}>
         {bloqueado ? (
           <p className="text-gray-700">Elige una empresa en el selector de arriba para continuar.</p>
         ) : (

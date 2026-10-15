@@ -98,7 +98,8 @@ export default function ObligacionesCliente({ empresaId, revision, onCerrar }) {
                     ? <span className="font-medium">{f.descripcion}</span>
                     : <input value={f.descripcion} onChange={e => cambiar(i, 'descripcion', e.target.value)} placeholder="Descripción" className={`${input} w-full`} />}
                   {f.nota && <span className="ml-2 text-xs text-amber-700">({f.nota})</span>}
-                  {f.vencimiento_texto && <div className="text-xs text-gray-500">{f.vencimiento_texto}</div>}
+                  {/* ponytail: pdf-parse pega palabras; el texto crudo solo sirve de pista cuando no se pudo clasificar */}
+                  {f.vencimiento_texto && f.periodicidad === 'manual' && <div className="text-xs text-gray-500">{f.vencimiento_texto}</div>}
                 </td>
                 <td className="p-1">
                   <select value={f.periodicidad} onChange={e => cambiar(i, 'periodicidad', e.target.value)} className={input}>
