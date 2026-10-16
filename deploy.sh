@@ -7,7 +7,7 @@ SSH="ssh -i $HOME/.ssh/id_ed25519 -o IdentitiesOnly=yes"
 
 echo "→ Construyendo frontend..."
 cd "$ROOT_DIR/frontend"
-npm run build
+node node_modules/.bin/vite build  # sin npm en la máquina de deploy
 
 echo "→ Sincronizando backend (sin tocar uploads)..."
 rsync -az --delete --chown=apps:apps -e "$SSH" \
