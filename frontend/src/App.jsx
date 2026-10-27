@@ -88,10 +88,10 @@ function Layout() {
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b border-gray-200 px-4 sm:px-6 py-2 flex flex-wrap items-center gap-4 shadow-sm">
-        <div className="flex flex-col leading-tight">
+        <NavLink to="/" title="Ir al inicio" className="flex flex-col leading-tight hover:opacity-75">
           <span className="font-bold text-gray-800 text-base tracking-wide">DIANDRA</span>
           <span className="text-xs text-gray-500 uppercase tracking-widest">Asesoría Contable</span>
-        </div>
+        </NavLink>
         <div className="sm:ml-6 flex flex-wrap gap-x-4 gap-y-1 flex-1">
           <NavLink to="/empleados" className={linkCls}>Empleados</NavLink>
           <NavLink to="/pagos" className={linkCls}>Pagos</NavLink>
@@ -100,7 +100,7 @@ function Layout() {
           <NavLink to="/cultura" className={linkCls}>Cultura</NavLink>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <NavLink to="/" end className={linkCls}>Escritorio</NavLink>
+          <NavLink to="/" end className={linkCls}>Inicio</NavLink>
           <NavLink to="/agenda" className={linkCls}>Agenda</NavLink>
           <NavLink to="/control" className={linkCls}>Control</NavLink>
           <NavLink to="/obligaciones" className={linkCls}>Obligaciones</NavLink>
