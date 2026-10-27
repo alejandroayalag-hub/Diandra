@@ -90,7 +90,7 @@ function Layout() {
           <span className="font-bold text-gray-800 text-base tracking-wide">DIANDRA</span>
           <span className="text-xs text-gray-500 uppercase tracking-widest">Asesoría Contable</span>
         </div>
-        <div className={`sm:ml-6 flex flex-wrap gap-x-4 gap-y-1 flex-1 ${activa ? '' : 'pointer-events-none opacity-40'}`}>
+        <div className="sm:ml-6 flex flex-wrap gap-x-4 gap-y-1 flex-1">
           <NavLink to="/" end className={linkCls}>Empleados</NavLink>
           <NavLink to="/pagos" className={linkCls}>Pagos</NavLink>
           <NavLink to="/checador/mapeo" className={linkCls}>Checador</NavLink>
@@ -128,7 +128,12 @@ function Layout() {
       )}
       <main className="max-w-6xl mx-auto p-4 sm:p-6" key={activa?.id || 'sin-empresa'}>
         {bloqueado ? (
-          <p className="text-gray-700">Elige una empresa en el selector de arriba para continuar.</p>
+          empresas && empresas.length === 0 ? (
+            <p className="text-gray-700">Esta sección trabaja sobre un cliente y aún no hay ninguno.{' '}
+              <NavLink to="/empresas/nueva" className="text-blue-700 hover:underline">Da de alta el primero</NavLink>.</p>
+          ) : (
+            <p className="text-gray-700">Esta sección trabaja sobre un cliente: elígelo en el selector de arriba para continuar.</p>
+          )
         ) : (
           <Routes>
             <Route path="/" element={<EmpleadosPage />} />
