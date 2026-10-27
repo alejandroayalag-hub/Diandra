@@ -88,7 +88,7 @@ function Layout() {
       <nav className="bg-white border-b border-gray-200 px-4 sm:px-6 py-2 flex flex-wrap items-center gap-4 shadow-sm">
         <div className="flex flex-col leading-tight">
           <span className="font-bold text-gray-800 text-base tracking-wide">DIANDRA</span>
-          <span className="text-xs text-gray-500 uppercase tracking-widest">Recursos Humanos</span>
+          <span className="text-xs text-gray-500 uppercase tracking-widest">Asesoría Contable</span>
         </div>
         <div className={`sm:ml-6 flex flex-wrap gap-x-4 gap-y-1 flex-1 ${activa ? '' : 'pointer-events-none opacity-40'}`}>
           <NavLink to="/" end className={linkCls}>Empleados</NavLink>

@@ -30,7 +30,7 @@ export default function LoginPage() {
       <div className="bg-white rounded-xl shadow-md p-8 w-full max-w-sm">
         <div className="flex flex-col items-center mb-6">
           <h1 className="font-bold text-gray-800 text-2xl tracking-wide">DIANDRA</h1>
-          <p className="text-xs text-gray-400 uppercase tracking-widest">Recursos Humanos</p>
+          <p className="text-xs text-gray-400 uppercase tracking-widest">Asesoría Contable</p>
         </div>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
