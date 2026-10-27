@@ -73,7 +73,7 @@ export default function MapeoChecadorPage() {
             Asigna el número de usuario del reloj a cada empleado del sistema
           </p>
         </div>
-        <Link to="/" className="text-sm text-gray-500 hover:underline">← Volver</Link>
+        <Link to="/empleados" className="text-sm text-gray-500 hover:underline">← Volver</Link>
       </div>
 
       {/* Formulario nuevo mapeo */}

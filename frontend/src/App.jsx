@@ -14,6 +14,7 @@ import EmpresaFormPage from './pages/EmpresaFormPage';
 import ObligacionesPage from './pages/ObligacionesPage';
 import ControlPage from './pages/ControlPage';
 import AgendaPage from './pages/AgendaPage';
+import EscritorioPage from './pages/EscritorioPage';
 import ControlClientePage from './pages/ControlClientePage';
 import LoginPage from './pages/LoginPage';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -70,7 +71,7 @@ function Layout() {
     if (!e) return;
     setEmpresaActiva(e);
     setActiva(getEmpresaActiva());
-    navigate('/');
+    navigate('/empleados');
   }
 
   function logout() {
@@ -80,8 +81,8 @@ function Layout() {
     navigate('/login');
   }
 
-  // Clientes, control, agenda y obligaciones son del despacho: no requieren empresa activa.
-  const enEmpresas = /^\/(empresas|obligaciones|control|agenda)/.test(location.pathname);
+  // Escritorio, clientes, control, agenda y obligaciones son del despacho: no requieren empresa activa.
+  const enEmpresas = location.pathname === '/' || /^\/(empresas|obligaciones|control|agenda)/.test(location.pathname);
   const bloqueado = !activa && !enEmpresas;
 
   return (
@@ -92,13 +93,14 @@ function Layout() {
           <span className="text-xs text-gray-500 uppercase tracking-widest">Asesoría Contable</span>
         </div>
         <div className="sm:ml-6 flex flex-wrap gap-x-4 gap-y-1 flex-1">
-          <NavLink to="/" end className={linkCls}>Empleados</NavLink>
+          <NavLink to="/empleados" className={linkCls}>Empleados</NavLink>
           <NavLink to="/pagos" className={linkCls}>Pagos</NavLink>
           <NavLink to="/checador/mapeo" className={linkCls}>Checador</NavLink>
           <NavLink to="/formatos" className={linkCls}>Formatos</NavLink>
           <NavLink to="/cultura" className={linkCls}>Cultura</NavLink>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          <NavLink to="/" end className={linkCls}>Escritorio</NavLink>
           <NavLink to="/agenda" className={linkCls}>Agenda</NavLink>
           <NavLink to="/control" className={linkCls}>Control</NavLink>
           <NavLink to="/obligaciones" className={linkCls}>Obligaciones</NavLink>
@@ -138,7 +140,8 @@ function Layout() {
           )
         ) : (
           <Routes>
-            <Route path="/" element={<EmpleadosPage />} />
+            <Route path="/" element={<EscritorioPage />} />
+            <Route path="/empleados" element={<EmpleadosPage />} />
             <Route path="/empleados/nuevo" element={<EmpleadoFormPage />} />
             <Route path="/empleados/:id" element={<EmpleadoDetallePage />} />
             <Route path="/empleados/:id/editar" element={<EmpleadoFormPage />} />
