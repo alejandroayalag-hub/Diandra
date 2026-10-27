@@ -12,6 +12,8 @@ import CultureElementDetailPage from './pages/CultureElementDetailPage';
 import EmpresasPage from './pages/EmpresasPage';
 import EmpresaFormPage from './pages/EmpresaFormPage';
 import ObligacionesPage from './pages/ObligacionesPage';
+import ControlPage from './pages/ControlPage';
+import ControlClientePage from './pages/ControlClientePage';
 import LoginPage from './pages/LoginPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { getEmpresas } from './api/empresas';
@@ -77,8 +79,8 @@ function Layout() {
     navigate('/login');
   }
 
-  // Clientes y obligaciones son del despacho: no requieren empresa activa.
-  const enEmpresas = /^\/(empresas|obligaciones)/.test(location.pathname);
+  // Clientes, control y obligaciones son del despacho: no requieren empresa activa.
+  const enEmpresas = /^\/(empresas|obligaciones|control)/.test(location.pathname);
   const bloqueado = !activa && !enEmpresas;
 
   return (
@@ -96,6 +98,7 @@ function Layout() {
           <NavLink to="/cultura" className={linkCls}>Cultura</NavLink>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          <NavLink to="/control" className={linkCls}>Control</NavLink>
           <NavLink to="/obligaciones" className={linkCls}>Obligaciones</NavLink>
           <NavLink to="/empresas" className={linkCls}>Clientes</NavLink>
           <select aria-label="Empresa activa" value={activa?.id || ''} onChange={e => cambiarEmpresa(e.target.value)}
@@ -139,6 +142,8 @@ function Layout() {
             <Route path="/cultura" element={<CulturePage />} />
             <Route path="/cultura/:culturaId" element={<CultureElementDetailPage />} />
             <Route path="/obligaciones" element={<ObligacionesPage />} />
+            <Route path="/control" element={<ControlPage />} />
+            <Route path="/control/:id" element={<ControlClientePage />} />
             <Route path="/empresas" element={<EmpresasPage onCambio={cargarEmpresas} />} />
             <Route path="/empresas/nueva" element={<EmpresaFormPage onCambio={cargarEmpresas} />} />
             <Route path="/empresas/:id/editar" element={<EmpresaFormPage onCambio={cargarEmpresas} />} />

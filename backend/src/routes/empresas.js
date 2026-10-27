@@ -6,6 +6,7 @@ const upload = require('../middleware/upload');
 const { relativa, absoluta } = require('../lib/archivos');
 const { leerCsf } = require('../lib/csf');
 const { validarObligaciones } = require('../lib/vencimientos');
+const { PERIODO_RE } = require('../lib/honorarios');
 const { EmpresaModel, EmpresaDocumentoModel, normalizarRfc } = require('../models/empresa');
 const ObligacionModel = require('../models/obligacion');
 
@@ -21,7 +22,8 @@ function validar(body) {
   if (body.tipo_persona === 'moral' && rfc.length !== 12) return 'Persona moral: el RFC lleva 12 caracteres';
   if (body.tipo_persona === 'fisica' && rfc.length !== 13) return 'Persona física: el RFC lleva 13 caracteres';
   const monto = body.monto_facturacion;
-  if (monto !== undefined && monto !== null && monto !== '' && !(Number(monto) >= 0)) return 'Monto de facturación inválido';
+  if (monto !== undefined && monto !== null && monto !== '' && !(Number(monto) >= 0)) return 'Honorario mensual inválido';
+  if (body.cobro_desde && !PERIODO_RE.test(body.cobro_desde)) return 'Mes de inicio de cobro inválido (AAAA-MM)';
   return null;
 }
 

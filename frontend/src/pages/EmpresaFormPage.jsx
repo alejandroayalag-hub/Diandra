@@ -7,7 +7,7 @@ import ObligacionesCliente from '../components/ObligacionesCliente';
 
 const CAMPOS = ['tipo_persona', 'razon_social', 'rfc', 'representante_legal', 'registro_patronal', 'giro',
   'contacto_nombre', 'contacto_telefono', 'contacto_whatsapp',
-  'nombre_comercial', 'domicilio', 'colonia', 'cp', 'ciudad', 'monto_facturacion', 'condiciones_pago'];
+  'nombre_comercial', 'domicilio', 'colonia', 'cp', 'ciudad', 'monto_facturacion', 'cobro_desde', 'condiciones_pago'];
 const RFC_RE = /^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/;
 const inputCls = 'mt-1 w-full border border-gray-300 rounded px-3 py-2 text-sm';
 
@@ -131,9 +131,10 @@ export default function EmpresaFormPage({ onCambio }) {
         ) : sinId}
       </Seccion>
 
-      <Seccion titulo="Facturación">
+      <Seccion titulo="Honorarios">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {campo('monto_facturacion', 'Monto de facturación acordado (MXN)', { type: 'number', min: '0', step: '0.01' })}
+          {campo('monto_facturacion', 'Honorario mensual (MXN)', { type: 'number', min: '0', step: '0.01' })}
+          {campo('cobro_desde', 'Se cobra desde (vacío = mes de alta)', { type: 'month' })}
           <label className="text-sm text-gray-700 sm:col-span-2">Condiciones de pago
             <textarea value={form.condiciones_pago} onChange={set('condiciones_pago')} rows={3} className={inputCls} />
           </label>

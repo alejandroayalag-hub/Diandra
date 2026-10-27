@@ -2,7 +2,7 @@ const pool = require('../db/pool');
 
 const CAMPOS = ['razon_social', 'nombre_comercial', 'rfc', 'registro_patronal', 'representante_legal',
   'domicilio', 'colonia', 'cp', 'ciudad', 'giro',
-  'tipo_persona', 'contacto_nombre', 'contacto_telefono', 'contacto_whatsapp', 'monto_facturacion', 'condiciones_pago'];
+  'tipo_persona', 'contacto_nombre', 'contacto_telefono', 'contacto_whatsapp', 'monto_facturacion', 'condiciones_pago', 'cobro_desde'];
 
 // '' y undefined → NULL; 0 se conserva (monto_facturacion puede ser 0).
 const valor = v => (v === '' || v === undefined ? null : v);
