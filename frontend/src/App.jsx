@@ -13,6 +13,7 @@ import EmpresasPage from './pages/EmpresasPage';
 import EmpresaFormPage from './pages/EmpresaFormPage';
 import ObligacionesPage from './pages/ObligacionesPage';
 import ControlPage from './pages/ControlPage';
+import AgendaPage from './pages/AgendaPage';
 import ControlClientePage from './pages/ControlClientePage';
 import LoginPage from './pages/LoginPage';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -79,8 +80,8 @@ function Layout() {
     navigate('/login');
   }
 
-  // Clientes, control y obligaciones son del despacho: no requieren empresa activa.
-  const enEmpresas = /^\/(empresas|obligaciones|control)/.test(location.pathname);
+  // Clientes, control, agenda y obligaciones son del despacho: no requieren empresa activa.
+  const enEmpresas = /^\/(empresas|obligaciones|control|agenda)/.test(location.pathname);
   const bloqueado = !activa && !enEmpresas;
 
   return (
@@ -98,6 +99,7 @@ function Layout() {
           <NavLink to="/cultura" className={linkCls}>Cultura</NavLink>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          <NavLink to="/agenda" className={linkCls}>Agenda</NavLink>
           <NavLink to="/control" className={linkCls}>Control</NavLink>
           <NavLink to="/obligaciones" className={linkCls}>Obligaciones</NavLink>
           <NavLink to="/empresas" className={linkCls}>Clientes</NavLink>
@@ -147,6 +149,7 @@ function Layout() {
             <Route path="/cultura" element={<CulturePage />} />
             <Route path="/cultura/:culturaId" element={<CultureElementDetailPage />} />
             <Route path="/obligaciones" element={<ObligacionesPage />} />
+            <Route path="/agenda" element={<AgendaPage />} />
             <Route path="/control" element={<ControlPage />} />
             <Route path="/control/:id" element={<ControlClientePage />} />
             <Route path="/empresas" element={<EmpresasPage onCambio={cargarEmpresas} />} />
