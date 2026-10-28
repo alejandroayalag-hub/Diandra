@@ -98,6 +98,8 @@ function Layout() {
           <NavLink to="/checador/mapeo" className={linkCls}>Checador</NavLink>
           <NavLink to="/formatos" className={linkCls}>Formatos</NavLink>
           <NavLink to="/cultura" className={linkCls}>Cultura</NavLink>
+          {/* página estática en public/, fuera del router */}
+          <a href="/costo-laboral.html" target="_blank" rel="noopener" className="text-gray-600 hover:text-blue-700 text-sm">Costo laboral</a>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <NavLink to="/" end className={linkCls}>Inicio</NavLink>
