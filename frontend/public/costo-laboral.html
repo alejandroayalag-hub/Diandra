@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Costo Real del Trabajador · México 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f3ee;--surface:#ffffff;--surface2:#f0efe8;--border:#e2e0d6;--border2:#c8c6bb;
+  --text:#18170f;--text2:#6a6960;--text3:#9a9890;
+  --navy:#1c3450;--navy-light:#e8eef5;
+  --amber:#8a4f08;--amber-bg:#fef2de;
+  --red:#7d1f1f;--red-bg:#fde8e8;
+  --teal:#0b5c49;--teal-bg:#e2f4ef;
+  --green:#2a5618;--green-bg:#e8f3e2;
+  --purple:#4a2c7a;--purple-bg:#f0ebfa;
+  --r:10px;--rs:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6}
+
+.page-header{background:var(--navy);color:#fff;padding:2rem 2.5rem 1.75rem}
+.page-header h1{font-size:22px;font-weight:600;letter-spacing:-.3px;margin-bottom:4px}
+.page-header p{font-size:13px;opacity:.65;max-width:560px}
+.tag-row{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+.tag{font-size:11px;font-family:'DM Mono',monospace;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:20px;padding:2px 10px;letter-spacing:.04em}
+
+.container{max-width:880px;margin:0 auto;padding:2rem 1.5rem 4rem}
+
+/* GRID */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+@media(max-width:660px){.grid-2{grid-template-columns:1fr}}
+
+/* CARD */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem 1.5rem;margin-bottom:1.25rem}
+.card-title{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:1rem}
+
+/* FORM */
+.field{margin-bottom:.8rem}
+.field label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:4px}
+.field .hint{font-size:11px;color:var(--text3);margin-top:3px}
+.input-wrap{position:relative}
+.input-wrap .prefix,.input-wrap .suffix{position:absolute;top:50%;transform:translateY(-50%);font-size:13px;color:var(--text3);pointer-events:none}
+.input-wrap .prefix{left:10px}
+.input-wrap .suffix{right:10px}
+input[type=number],input[type=date],select{
+  width:100%;height:38px;border:1px solid var(--border2);border-radius:var(--rs);
+  background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;
+  font-size:14px;padding:0 12px;outline:none;transition:border-color .15s
+}
+input[type=number]{padding-left:24px}
+input[type=number].suf{padding-right:28px}
+input:focus,select:focus{border-color:var(--navy)}
+.field-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* TOGGLE */
+.toggle-row{display:flex;align-items:flex-start;gap:10px;padding:.55rem 0;border-bottom:1px solid var(--border)}
+.toggle-row:last-child{border-bottom:none}
+.t-label{flex:1;font-size:13px;color:var(--text)}
+.t-label small{display:block;font-size:11px;color:var(--text3);margin-top:1px}
+.toggle{position:relative;width:38px;height:22px;flex-shrink:0;margin-top:1px}
+.toggle input{opacity:0;width:0;height:0}
+.knob{position:absolute;inset:0;background:var(--border2);border-radius:22px;cursor:pointer;transition:background .2s}
+.knob::before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle input:checked+.knob{background:var(--navy)}
+.toggle input:checked+.knob::before{transform:translateX(16px)}
+.sub-fields{padding:.6rem 0 .2rem 0;display:none}
+.sub-fields.open{display:block}
+
+/* BUTTON */
+.btn-calc{
+  width:100%;padding:12px;background:var(--navy);color:#fff;border:none;
+  border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:14px;
+  font-weight:500;cursor:pointer;transition:opacity .15s;margin-top:.5rem;letter-spacing:.02em
+}
+.btn-calc:hover{opacity:.88}
+
+/* SUMMARY CARDS */
+.sum-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-bottom:1.5rem}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:.85rem 1rem}
+.sc .sl{font-size:10px;color:var(--text3);margin-bottom:3px;line-height:1.35;font-weight:500;letter-spacing:.03em;text-transform:uppercase}
+.sc .sv{font-size:17px;font-weight:600}
+.sc.navy{background:var(--navy);border-color:var(--navy)}
+.sc.navy .sl{color:rgba(255,255,255,.55)}
+.sc.navy .sv{color:#fff}
+.sc.amber .sv{color:var(--amber)}
+.sc.red .sv{color:var(--red)}
+.sc.teal .sv{color:var(--teal)}
+.sc.green .sv{color:var(--green)}
+.sc.purple .sv{color:var(--purple)}
+
+/* TABLA PRINCIPAL DE COSTOS */
+.cost-table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:1.25rem}
+.cost-table-title{background:var(--navy);color:#fff;padding:.65rem 1.25rem;font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase}
+table.cost{width:100%;border-collapse:collapse;font-size:13px}
+table.cost th{padding:7px 14px;text-align:left;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);background:var(--surface2)}
+table.cost th:last-child{text-align:right}
+table.cost td{padding:9px 14px;border-top:1px solid var(--border)}
+table.cost td:last-child{text-align:right;font-family:'DM Mono',monospace;font-size:13px}
+table.cost tr.grp td{background:var(--surface2);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding:5px 14px}
+table.cost tr.sub td{color:var(--text2)}
+table.cost tr.sub td:first-child{padding-left:26px}
+table.cost tr.subtotal td{font-weight:500;background:var(--surface2);color:var(--text2)}
+table.cost tr.subtotal td:last-child{color:var(--text)}
+table.cost tr.total-final td{font-weight:600;background:var(--navy);color:#fff}
+table.cost tr.total-final td:last-child{color:#fff}
+table.cost tr.highlight-row td{background:var(--amber-bg)}
+table.cost tr.highlight-row td:last-child{color:var(--amber);font-weight:500}
+
+.pill{display:inline-block;font-size:10px;padding:1px 7px;border-radius:20px;margin-left:6px;font-weight:500;vertical-align:middle}
+.pe{background:var(--green-bg);color:var(--green)}
+.pa{background:var(--amber-bg);color:var(--amber)}
+.pn{background:var(--navy-light);color:var(--navy)}
+
+/* TABS */
+.tabs-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:1.25rem}
+.tabs-bar{display:flex;flex-wrap:wrap;border-bottom:1px solid var(--border);padding:0 1rem}
+.tab-btn{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--text3);background:none;border:none;padding:9px 12px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s;white-space:nowrap}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{color:var(--navy);border-bottom-color:var(--navy)}
+.tab-body{padding:1.25rem 1.5rem}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+.note{font-size:11px;color:var(--text3);line-height:1.65;padding:.4rem 0}
+.info-box{background:var(--navy-light);border-left:3px solid var(--navy);border-radius:0 var(--rs) var(--rs) 0;padding:.75rem 1rem;font-size:12px;color:var(--navy);line-height:1.6;margin-bottom:1rem}
+.warn-box{background:var(--amber-bg);border-left:3px solid var(--amber);border-radius:0 var(--rs) var(--rs) 0;padding:.75rem 1rem;font-size:12px;color:var(--amber);line-height:1.6;margin-bottom:1rem}
+
+#resultado{display:none}
+#resultado.visible{display:block}
+.sec-divider{height:1px;background:var(--border);margin:1.75rem 0}
+.sec-label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:1rem}
+
+table.cost tr.imss-summary-row td{background:var(--navy-light)}
+table.cost tr.imss-summary-row:hover td{background:#dce6f0}
+table.cost tr.imss-detail td{background:#f7fafd;font-size:12px;color:var(--text2)}
+table.cost tr.imss-detail td:last-child{color:var(--text2);font-size:12px}
+.footer-note{margin-top:2rem;padding:1rem 1.25rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);font-size:11px;color:var(--text3);line-height:1.7}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Costo Real del Trabajador</h1>
+  <p>Calcula el verdadero costo por día laborado considerando el Salario Diario Integrado, días reales trabajados, obligaciones patronales y pasivos laborales.</p>
+  <div class="tag-row">
+    <span class="tag">México 2026</span>
+    <span class="tag">IMSS · SDI actualizado</span>
+    <span class="tag">Días reales laborados calculados</span>
+  </div>
+</div>
+
+<div class="container">
+  <div class="grid-2">
+
+    <!-- COLUMNA IZQUIERDA -->
+    <div>
+      <div class="card">
+        <div class="card-title">Datos del trabajador</div>
+
+        <div class="field">
+          <label>Salario diario nominal</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <div class="input-wrap" style="flex:1">
+              <span class="prefix">$</span>
+              <input type="number" id="sal-diario" value="500" min="0" step="10">
+            </div>
+            <button onclick="usarSalarioMinimo()" title="Usar salario mínimo vigente 2026" style="flex-shrink:0;height:38px;padding:0 12px;background:var(--navy);color:#fff;border:none;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;transition:opacity .15s" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
+              Sal. mínimo
+            </button>
+          </div>
+          <div class="hint">Salario mínimo general 2026: <strong>$315.04/día</strong> · Zona libre frontera norte: <strong>$440.87/día</strong></div>
+        </div>
+
+        <div class="field">
+          <label>Fecha de ingreso</label>
+          <input type="date" id="fecha-ingreso" value="2023-05-16">
+          <div class="hint">Determina antigüedad y días de vacaciones</div>
+        </div>
+
+        <div class="field">
+          <label>Estado (tasa ISN)</label>
+          <select id="estado">
+            <option value="3.0">Ciudad de México — 3.0%</option>
+            <option value="2.0" selected>Nuevo León — 2.0%</option>
+            <option value="2.0">Jalisco — 2.0%</option>
+            <option value="2.0">Estado de México — 2.0%</option>
+            <option value="2.5">Coahuila — 2.5%</option>
+            <option value="2.0">Tamaulipas — 2.0%</option>
+            <option value="2.0">Veracruz — 2.0%</option>
+            <option value="2.0">Otro estado — 2.0%</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Prima de riesgo de trabajo (IMSS)</label>
+          <select id="prima-riesgo">
+            <option value="0.005">Clase I — 0.500% mínima</option>
+            <option value="0.010">Clase II — 1.000%</option>
+            <option value="0.025" selected>Clase III — 2.500% media</option>
+            <option value="0.050">Clase IV — 5.000%</option>
+            <option value="0.075">Clase V — 7.500%</option>
+            <option value="0.150">Prima máxima — 15.000%</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Días y calendario laboral</div>
+
+        <div class="info-box">
+          De los 365 días del año, el IMSS no cobra solo sobre esos 365 — cobra sobre el <strong>Salario Diario Integrado (SDI)</strong>, que suma: los 365 días de salario, más los <strong>15 días de aguinaldo</strong>, más los <strong>días de vacaciones</strong> (12 el primer año, +2 por año hasta el quinto y después +2 cada 5 años), más el <strong>25% de esos días de vacaciones</strong> por concepto de prima vacacional. La suma de todos esos conceptos dividida entre 365 genera el SDI, que es la base real sobre la que el IMSS calcula y cobra las cuotas patronales.
+        </div>
+
+        <div class="field">
+          <label>Días festivos locales / por costumbre</label>
+          <input type="number" id="festivos-cos" value="5" min="0" max="20">
+          <div class="hint">Adicionales a los 8 obligatorios de ley (Art. 74 LFT) que ya están incluidos</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUMNA DERECHA -->
+    <div>
+      <div class="card">
+        <div class="card-title">Prestaciones adicionales opcionales</div>
+
+        <!-- FONDO DE AHORRO -->
+        <div class="toggle-row">
+          <div class="t-label">Fondo de ahorro<small>Aportación patronal sobre salario mensual</small></div>
+          <label class="toggle"><input type="checkbox" id="chk-fa" onchange="toggleSub('fa')"><span class="knob"></span></label>
+        </div>
+        <div class="sub-fields" id="sub-fa">
+          <div class="field">
+            <label>% de aportación patronal (máx. 13%)</label>
+            <div class="input-wrap">
+              <input type="number" id="pct-fa" value="13" min="1" max="13" class="suf">
+              <span class="suffix">%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- VALES DE DESPENSA -->
+        <div class="toggle-row">
+          <div class="t-label">Vales de despensa<small>Monto mensual al trabajador</small></div>
+          <label class="toggle"><input type="checkbox" id="chk-vd" onchange="toggleSub('vd')"><span class="knob"></span></label>
+        </div>
+        <div class="sub-fields" id="sub-vd">
+          <div class="field">
+            <label>Monto mensual</label>
+            <div class="input-wrap">
+              <span class="prefix">$</span>
+              <input type="number" id="monto-vd" value="2000" min="0" step="100">
+            </div>
+          </div>
+        </div>
+
+        <!-- COMPENSACIONES -->
+        <div class="toggle-row">
+          <div class="t-label">Compensaciones adicionales<small>Bonos y otros beneficios</small></div>
+          <label class="toggle"><input type="checkbox" id="chk-comp" onchange="toggleSub('comp')"><span class="knob"></span></label>
+        </div>
+        <div class="sub-fields" id="sub-comp">
+          <div class="field">
+            <label>Bono mensual</label>
+            <div class="input-wrap"><span class="prefix">$</span>
+              <input type="number" id="bono-mens" value="0" min="0" step="500">
+            </div>
+          </div>
+          <div class="field">
+            <label>Bono anual (se mensualiza)</label>
+            <div class="input-wrap"><span class="prefix">$</span>
+              <input type="number" id="bono-anual" value="0" min="0" step="1000">
+            </div>
+          </div>
+          <div class="field">
+            <label>Otros beneficios / mes</label>
+            <div class="input-wrap"><span class="prefix">$</span>
+              <input type="number" id="otros" value="0" min="0" step="100">
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-calc" onclick="calcular()">Calcular costo real →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTADO -->
+  <div id="resultado">
+
+    <div class="sec-divider"></div>
+    <div class="sec-label">Resumen ejecutivo</div>
+    <div class="sum-grid" id="cards-resumen"></div>
+
+    <!-- TABLA PRINCIPAL -->
+    <div class="cost-table-wrap">
+      <div class="cost-table-title">Construcción del costo real por día laborado</div>
+      <table class="cost" id="tabla-principal"></table>
+    </div>
+
+    <!-- TABS DETALLE -->
+    <div class="tabs-wrap">
+      <div class="tabs-bar">
+        <button class="tab-btn active" onclick="showTab('t1',this)">Días laborados reales</button>
+        <button class="tab-btn" onclick="showTab('t2',this)">SDI y IMSS</button>
+        <button class="tab-btn" onclick="showTab('t3',this)">Pasivos y antigüedad</button>
+        <button class="tab-btn" id="tab-opt" onclick="showTab('t4',this)" style="display:none">Prestaciones</button>
+        <button class="tab-btn" onclick="showTab('t5',this)">Indemnización</button>
+      </div>
+      <div class="tab-body">
+
+        <div class="tab-panel active" id="t1">
+          <div id="panel-dias"></div>
+        </div>
+        <div class="tab-panel" id="t2">
+          <div id="panel-imss"></div>
+        </div>
+        <div class="tab-panel" id="t3">
+          <div id="panel-pasivos"></div>
+        </div>
+        <div class="tab-panel" id="t4">
+          <div id="panel-opcionales"></div>
+        </div>
+        <div class="tab-panel" id="t5">
+          <div id="panel-indem"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="footer-note">
+      <strong>Metodología:</strong> El costo real por día laborado se calcula dividiendo el costo anual total entre los días efectivamente trabajados (365 − domingos − descanso semanal − festivos − vacaciones). El IMSS cobra sobre el SDI durante 365 días del año, pero el trabajador solo produce valor en ~278 días, por lo que ese diferencial es un costo patronal real que debe distribuirse. Cuotas IMSS conforme a la Ley del Seguro Social vigente 2026. Se recomienda validar con su área de nómina o contabilidad.
+    </div>
+  </div>
+</div>
+
+<script>
+const UMA_DIA  = 108.57;
+const SMG_DIA  = 248.93;
+const DIAS_ANO = 365;
+
+// Tabla progresiva Cesantía y Vejez 2026
+function getPctCyV(sbc_d) {
+  const v = sbc_d / SMG_DIA;
+  if(v<=1.0) return 0.03150; if(v<=1.5) return 0.03413;
+  if(v<=2.0) return 0.03675; if(v<=2.5) return 0.04160;
+  if(v<=3.0) return 0.04645; if(v<=3.5) return 0.05130;
+  if(v<=4.0) return 0.05390; if(v<=6.0) return 0.06000;
+  return 0.07513;
+}
+
+// Días de vacaciones según art. 76 LFT: 12 el 1er año, +2 por año hasta 20 (5º año), luego +2 cada 5 años
+function diasVacaciones(anos) {
+  if(anos < 1) return Math.floor(12 * anos); // proporcional primer año
+  const n = Math.floor(anos);
+  return n <= 5 ? 10 + 2 * n : 22 + 2 * Math.floor((n - 6) / 5);
+}
+
+function getAntiguedad(fechaStr) {
+  const hoy   = new Date();
+  const ingreso = new Date(fechaStr);
+  const ms    = hoy - ingreso;
+  return ms / (1000 * 60 * 60 * 24 * 365.25);
+}
+
+const fmt  = n => '$' + n.toLocaleString('es-MX', {minimumFractionDigits:2, maximumFractionDigits:2});
+const fmtN = n => n.toLocaleString('es-MX', {minimumFractionDigits:2, maximumFractionDigits:2});
+const pctS = (v,t) => t>0 ? (v/t*100).toFixed(1)+'%' : '—';
+
+function toggleSub(id) {
+  const el = document.getElementById('sub-'+id);
+  document.getElementById('chk-'+id).checked ? el.classList.add('open') : el.classList.remove('open');
+}
+function showTab(id, el) {
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+}
+
+const SMG_GENERAL  = 315.04;
+const SMG_FRONTERA = 440.87;
+
+function usarSalarioMinimo() {
+  const zona = confirm(
+    'Selecciona zona salarial:\n\n' +
+    '✓ Aceptar → Salario mínimo general: $315.04/día\n' +
+    '✗ Cancelar → Zona libre frontera norte: $440.87/día'
+  );
+  document.getElementById('sal-diario').value = zona ? SMG_GENERAL : SMG_FRONTERA;
+}
+
+function calcular() {
+  // ENTRADAS
+  const salDiario   = parseFloat(document.getElementById('sal-diario').value) || 0;
+  const fechaIngreso= document.getElementById('fecha-ingreso').value;
+  const tasaISN     = parseFloat(document.getElementById('estado').value) / 100;
+  const primaRiesgo = parseFloat(document.getElementById('prima-riesgo').value) || 0.025;
+  const festivosLey = 8;
+  const festivosCos = parseInt(document.getElementById('festivos-cos').value) || 0;
+
+  const antiguedad  = Math.max(0, getAntiguedad(fechaIngreso));
+  const anosCompletos = Math.floor(antiguedad);
+
+  // ── CALENDARIO DE DÍAS ──────────────────────────────────────────────
+  // 365 días del año
+  // El domingo ES el séptimo día de descanso semanal — no se descuentan dos veces
+  // Por cada semana: 6 días laborados + 1 domingo (séptimo día pagado sin trabajar)
+  // = 52 domingos/séptimos días al año
+  const diasSeptimo         = 52;      // domingos = séptimos días pagados
+  const dvac = diasVacaciones(antiguedad);
+  const totalFestivos = festivosLey + festivosCos;
+
+  // Días reales laborados = 365 - séptimos días (domingos) - festivos - vacaciones
+  const diasLaborados = DIAS_ANO - diasSeptimo - totalFestivos - dvac;
+  // Referencia estándar ~278 días
+
+  // ── SALARIO DIARIO INTEGRADO (SDI) ──────────────────────────────────
+  // Factor de integración = 1 + (vacaciones × 0.25 + aguinaldo) / 365
+  // Aguinaldo: 15 días. Prima vacacional: 25% de los días de vac.
+  const diasAguinaldo  = 15;
+  const primaVacFactor = dvac * 0.25;
+  const factorIntegracion = 1 + (primaVacFactor + diasAguinaldo) / DIAS_ANO;
+  const SDI = Math.min(salDiario * factorIntegracion, UMA_DIA * 25);
+
+  // ── COSTO REAL DEL 7MO DÍA ──────────────────────────────────────────
+  // Por cada 6 días de trabajo se paga 1 día adicional
+  // Costo extra = salDiario × 52 / diasLaborados → representado en costo diario
+  const costoSeptimoDia = salDiario * diasSeptimo / DIAS_ANO; // costo anualizado por día
+
+  // ── COSTOS ANUALES BASE ──────────────────────────────────────────────
+  const costoSalarioAnual    = salDiario * DIAS_ANO; // se paga todos los días del año incluyendo descansos
+  const costoSeptimoDiaAnual = salDiario * diasSeptimo;
+
+  // Vacaciones: días de vacaciones × salario diario
+  const costoVacAnual    = salDiario * dvac;
+  // Prima vacacional: 25% del costo de vacaciones
+  const costoPrimaVacAnual = costoVacAnual * 0.25;
+  // Aguinaldo: 15 días de salario
+  const costoAguinaldoAnual = salDiario * diasAguinaldo;
+
+  // ── IMSS CUOTAS PATRONALES ───────────────────────────────────────────
+  // El IMSS cobra 30 días × 12 meses = 360 días, pero con el SDI que integra
+  // prestaciones, en la práctica equivale a ~384 días de salario ordinario
+  const SBC_mes = SDI * 30;
+  const SBC_ano = SBC_mes * 12;
+
+  const imss_riesgo_ano  = SBC_ano * primaRiesgo;
+  const imss_emFija_ano  = UMA_DIA * 30 * 0.2040 * 12;
+  const imss_emGmp_ano   = SBC_ano * 0.01050;
+  const imss_emDin_ano   = SBC_ano * 0.00700;
+  const imss_iv_ano      = SBC_ano * 0.01750;
+  const pctCyV = getPctCyV(SDI);
+  const imss_retiro_ano  = SBC_ano * 0.02000;
+  const imss_cyv_ano     = SBC_ano * pctCyV;
+  const imss_guard_ano   = SBC_ano * 0.01000;
+  const infonavit_ano    = SBC_ano * 0.05000;
+  const totalIMSS_ano    = imss_riesgo_ano + imss_emFija_ano + imss_emGmp_ano +
+                           imss_emDin_ano + imss_iv_ano + imss_retiro_ano +
+                           imss_cyv_ano + imss_guard_ano + infonavit_ano;
+
+  // ISN — sobre nómina mensual = salDiario × 30 (base mensual ordinaria)
+  const isn_ano = (salDiario * 30) * tasaISN * 12;
+
+  // ── PRIMA DE ANTIGÜEDAD (costo anual devengado) ─────────────────────
+  // 12 días de salario por año, con tope de 2 UMAs diarias
+  const salTope = Math.min(salDiario, UMA_DIA * 2);
+  const primaAntigAnual = salTope * 12; // costo anual de 1 año de servicio
+
+  // ── INDEMNIZACIÓN 90 DÍAS (devengado anual) ──────────────────────────
+  // Se provisiona dividiendo los 90 días entre los años de vida útil esperada
+  // Convencionalmente se provisiona como 90 días ÷ vida laboral estimada
+  // Forma práctica: 90 días de salario / vida laboral esperada = costo anual
+  // Aquí lo expresamos como provisión anual = 90 días / 10 años estimados
+  const ind90_provision_ano = salDiario * 90 / 10;
+
+  // ── OPCIONALES ───────────────────────────────────────────────────────
+  const faActivo   = document.getElementById('chk-fa').checked;
+  const vdActivo   = document.getElementById('chk-vd').checked;
+  const compActivo = document.getElementById('chk-comp').checked;
+  const salMensual = salDiario * 30;
+  const pctFA      = faActivo ? (parseFloat(document.getElementById('pct-fa').value)||0)/100 : 0;
+  const montoVD    = vdActivo ? parseFloat(document.getElementById('monto-vd').value)||0 : 0;
+  const bonoMens   = compActivo ? parseFloat(document.getElementById('bono-mens').value)||0 : 0;
+  const bonoAnual  = compActivo ? parseFloat(document.getElementById('bono-anual').value)||0 : 0;
+  const otros      = compActivo ? parseFloat(document.getElementById('otros').value)||0 : 0;
+  const FA_ano     = salMensual * pctFA * 12;
+  const VD_exTope  = UMA_DIA * 30 * 0.40;
+  const VD_grav    = Math.max(0, montoVD - VD_exTope);
+  const VD_ano     = montoVD * 12;
+  const comp_ano   = (bonoMens * 12) + bonoAnual + (otros * 12);
+  const totalOpc_ano = FA_ano + VD_ano + comp_ano;
+  const hayOpc     = faActivo || vdActivo || compActivo;
+
+  // ── COSTO TOTAL ANUAL ────────────────────────────────────────────────
+  const costoAnualTotal =
+    costoSalarioAnual +
+    costoSeptimoDiaAnual +
+    costoVacAnual +
+    costoPrimaVacAnual +
+    costoAguinaldoAnual +
+    totalIMSS_ano +
+    isn_ano +
+    primaAntigAnual +
+    ind90_provision_ano +
+    totalOpc_ano;
+
+  // ── COSTO REAL POR DÍA LABORADO ─────────────────────────────────────
+  const costoRealDia = costoAnualTotal / diasLaborados;
+  const factorMultiplicador = costoRealDia / salDiario;
+
+  // ── MOSTRAR ───────────────────────────────────────────────────────────
+  document.getElementById('tab-opt').style.display = hayOpc ? 'inline-block' : 'none';
+  document.getElementById('resultado').classList.add('visible');
+
+  // SUMMARY CARDS
+  document.getElementById('cards-resumen').innerHTML = `
+    <div class="sc"><div class="sl">Salario diario nominal</div><div class="sv">${fmt(salDiario)}</div></div>
+    <div class="sc"><div class="sl">SDI (integrado IMSS)</div><div class="sv" style="color:var(--teal)">${fmt(SDI)}</div></div>
+    <div class="sc"><div class="sl">Antigüedad</div><div class="sv">${antiguedad.toFixed(1)} años</div></div>
+    <div class="sc"><div class="sl">Días vacaciones</div><div class="sv">${dvac} días</div></div>
+    <div class="sc"><div class="sl">Días reales laborados / año</div><div class="sv">${diasLaborados}</div></div>
+    <div class="sc amber"><div class="sl">Costo anual total</div><div class="sv">${fmt(costoAnualTotal)}</div></div>
+    <div class="sc"><div class="sl">Costo nominal / día<br><span style="font-size:10px;font-weight:400">÷ ${diasLaborados} días base IMSS</span></div><div class="sv" style="color:var(--text2)">${fmt(costoAnualTotal/diasLaborados)}</div></div>
+    <div class="sc navy"><div class="sl">Costo real / día<br><span style="font-size:10px;font-weight:400;opacity:.7">÷ ${diasLaborados} días laborados</span></div><div class="sv">${fmt(costoAnualTotal/diasLaborados)}</div></div>
+  `;
+
+  // TABLA PRINCIPAL
+  const DIAS_REALES = diasLaborados;
+
+  document.getElementById('tabla-principal').innerHTML = `
+    <thead><tr>
+      <th>Concepto</th><th>Días / Factor</th><th>Costo anual</th><th style="color:var(--text2)">Costo nominal<br><span style="font-weight:400;font-size:10px">÷ ${diasLaborados} días IMSS</span></th><th style="color:var(--navy)">Costo real<br><span style="font-weight:400;font-size:10px">÷ ${DIAS_REALES} días laborados</span></th>
+    </tr></thead>
+    <tbody>
+      <tr class="grp"><td colspan="5">Salario y tiempo</td></tr>
+      <tr><td>Salario diario ordinario</td><td>${DIAS_ANO} días</td><td>${fmt(costoSalarioAnual)}</td><td>${fmt(salDiario)}</td><td style="font-weight:600;color:var(--navy)">${fmt(salDiario)}</td></tr>
+      <tr class="highlight-row"><td>Séptimo día <span class="pill pa">por cada 6 laborados</span></td><td>${diasSeptimo} días</td><td>${fmt(costoSeptimoDiaAnual)}</td><td>${fmt(costoSeptimoDiaAnual/diasLaborados)}</td><td style="font-weight:600;color:var(--navy)">${fmt(costoSeptimoDiaAnual/DIAS_REALES)}</td></tr>
+
+      <tr class="grp"><td colspan="5">Prestaciones de ley</td></tr>
+      <tr><td>Vacaciones (${dvac} días)</td><td>${dvac} días</td><td>${fmt(costoVacAnual)}</td><td>${fmt(costoVacAnual/diasLaborados)}</td><td style="color:var(--navy)">${fmt(costoVacAnual/DIAS_REALES)}</td></tr>
+      <tr><td>Prima vacacional (25%)</td><td>25% de vac.</td><td>${fmt(costoPrimaVacAnual)}</td><td>${fmt(costoPrimaVacAnual/diasLaborados)}</td><td style="color:var(--navy)">${fmt(costoPrimaVacAnual/DIAS_REALES)}</td></tr>
+      <tr><td>Aguinaldo</td><td>15 días</td><td>${fmt(costoAguinaldoAnual)}</td><td>${fmt(costoAguinaldoAnual/diasLaborados)}</td><td style="color:var(--navy)">${fmt(costoAguinaldoAnual/DIAS_REALES)}</td></tr>
+      <tr class="subtotal"><td colspan="2">Subtotal prestaciones de ley</td>
+        <td>${fmt(costoVacAnual+costoPrimaVacAnual+costoAguinaldoAnual)}</td>
+        <td>${fmt((costoVacAnual+costoPrimaVacAnual+costoAguinaldoAnual)/diasLaborados)}</td>
+        <td style="color:var(--navy)">${fmt((costoVacAnual+costoPrimaVacAnual+costoAguinaldoAnual)/DIAS_REALES)}</td></tr>
+
+      <tr class="grp"><td colspan="5">Cuotas patronales IMSS · SAR · INFONAVIT</td></tr>
+      <tr class="imss-summary-row" onclick="toggleIMSS()" style="cursor:pointer">
+        <td>
+          <span style="display:inline-flex;align-items:center;gap:8px">
+            <span id="imss-toggle-icon" style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--navy);color:#fff;font-size:13px;font-weight:700;flex-shrink:0;line-height:1">+</span>
+            Seguro Social · SAR · INFONAVIT
+            <span style="font-size:11px;color:var(--text3)">(haz clic para desglosar)</span>
+          </span>
+        </td>
+        <td style="color:var(--text3);font-size:12px">SDI × 360 días</td>
+        <td>${fmt(totalIMSS_ano)}</td>
+        <td>${fmt(totalIMSS_ano/diasLaborados)}</td>
+        <td style="font-weight:600;color:var(--navy)">${fmt(totalIMSS_ano/DIAS_REALES)}</td>
+      </tr>
+      <tr class="imss-detail" style="display:none"><td class="sub" style="padding-left:26px">Riesgo de trabajo (${(primaRiesgo*100).toFixed(3)}%)</td><td class="sub" style="color:var(--text3)">sobre SDI×360</td><td class="sub">${fmt(imss_riesgo_ano)}</td><td class="sub">${fmt(imss_riesgo_ano/diasLaborados)}</td><td class="sub" style="color:var(--navy)">${fmt(imss_riesgo_ano/DIAS_REALES)}</td></tr>
+      <tr class="imss-detail" style="display:none"><td class="sub" style="padding-left:26px">E&M cuota fija (20.40% UMA)</td><td class="sub" style="color:var(--text3)">UMA×30×12</td><td class="sub">${fmt(imss_emFija_ano)}</td><td class="sub">${fmt(imss_emFija_ano/diasLaborados)}</td><td class="sub" style="color:var(--navy)">${fmt(imss_emFija_ano/DIAS_REALES)}</td></tr>
+      <tr class="imss-detail" style="display:none"><td class="sub" style="padding-left:26px">E&M gastos médicos pensionados (1.05%)</td><td class="sub" style="color:var(--text3)">sobre SDI×360</td><td class="sub">${fmt(imss_emGmp_ano)}</td><td class="sub">${fmt(imss_emGmp_ano/diasLaborados)}</td><td class="sub" style="color:var(--navy)">${fmt(imss_emGmp_ano/DIAS_REALES)}</td></tr>
+      <tr class="imss-detail" style="display:none"><td class="sub" style="padding-left:26px">E&M prestaciones en dinero (0.70%)</td><td class="sub" style="color:var(--text3)">sobre SDI×360</td><td class="sub">${fmt(imss_emDin_ano)}</td><td class="sub">${fmt(imss_emDin_ano/diasLaborados)}</td><td class="sub" style="color:var(--navy)">${fmt(imss_emDin_ano/DIAS_REALES)}</td></tr>
+      <tr class="imss-detail" style="display:none"><td class="sub" style="padding-left:26px">Invalidez y vida (1.75%)</td><td class="sub" style="color:var(--text3)">sobre SDI×360</td><td class="sub">${fmt(imss_iv_ano)}</td><td class="sub">${fmt(imss_iv_ano/diasLaborados)}</td><td class="sub" style="color:var(--navy)">${fmt(imss_iv_ano/DIAS_REALES)}</td></tr>
+      <tr class="imss-detail" style="display:none"><td class="sub" style="padding-left:26px">Retiro SAR (2.00%)</td><td class="sub" style="color:var(--text3)">sobre SDI×360</td><td class="sub">${fmt(imss_retiro_ano)}</td><td class="sub">${fmt(imss_retiro_ano/diasLaborados)}</td><td class="sub" style="color:var(--navy)">${fmt(imss_retiro_ano/DIAS_REALES)}</td></tr>
+      <tr class="imss-detail" style="display:none"><td class="sub" style="padding-left:26px">Cesantía y vejez (${(pctCyV*100).toFixed(3)}%)</td><td class="sub" style="color:var(--text3)">sobre SDI×360</td><td class="sub">${fmt(imss_cyv_ano)}</td><td class="sub">${fmt(imss_cyv_ano/diasLaborados)}</td><td class="sub" style="color:var(--navy)">${fmt(imss_cyv_ano/DIAS_REALES)}</td></tr>
+      <tr class="imss-detail" style="display:none"><td class="sub" style="padding-left:26px">Guarderías (1.00%)</td><td class="sub" style="color:var(--text3)">sobre SDI×360</td><td class="sub">${fmt(imss_guard_ano)}</td><td class="sub">${fmt(imss_guard_ano/diasLaborados)}</td><td class="sub" style="color:var(--navy)">${fmt(imss_guard_ano/DIAS_REALES)}</td></tr>
+      <tr class="imss-detail" style="display:none"><td class="sub" style="padding-left:26px">INFONAVIT (5.00%)</td><td class="sub" style="color:var(--text3)">sobre SDI×360</td><td class="sub">${fmt(infonavit_ano)}</td><td class="sub">${fmt(infonavit_ano/diasLaborados)}</td><td class="sub" style="color:var(--navy)">${fmt(infonavit_ano/DIAS_REALES)}</td></tr>
+
+      <tr class="grp"><td colspan="5">Impuestos y antigüedad</td></tr>
+      <tr><td>Impuesto sobre nómina (${(tasaISN*100).toFixed(1)}%)</td><td>sobre sal. mensual</td><td>${fmt(isn_ano)}</td><td>${fmt(isn_ano/diasLaborados)}</td><td style="color:var(--navy)">${fmt(isn_ano/DIAS_REALES)}</td></tr>
+      <tr><td>Prima de antigüedad (12 días/año)<br><span style="font-size:11px;color:var(--text3)">Tope 2 UMAs/día · ${fmt(salTope)}/día · promediado</span></td><td style="color:var(--text3);font-size:12px">promedio diario</td><td>${fmt(primaAntigAnual)}</td><td>${fmt(primaAntigAnual/diasLaborados)}</td><td style="color:var(--navy)">${fmt(primaAntigAnual/DIAS_REALES)}</td></tr>
+      <tr><td>Indemnización 90 días <span class="pill pn">provisión anual</span><br><span style="font-size:11px;color:var(--text3)">90 días ÷ 10 años vida laboral · promediado</span></td><td style="color:var(--text3);font-size:12px">promedio diario</td><td>${fmt(ind90_provision_ano)}</td><td>${fmt(ind90_provision_ano/diasLaborados)}</td><td style="color:var(--navy)">${fmt(ind90_provision_ano/DIAS_REALES)}</td></tr>
+
+      ${hayOpc ? `
+      <tr class="grp"><td colspan="5">Prestaciones adicionales opcionales</td></tr>
+      ${faActivo  ? `<tr class="sub"><td>Fondo de ahorro (${Math.round(pctFA*100)}%)</td><td>sobre sal. mensual</td><td>${fmt(FA_ano)}</td><td>${fmt(FA_ano/diasLaborados)}</td><td style="color:var(--navy)">${fmt(FA_ano/DIAS_REALES)}</td></tr>` : ''}
+      ${vdActivo  ? `<tr class="sub"><td>Vales de despensa</td><td>mensual</td><td>${fmt(VD_ano)}</td><td>${fmt(VD_ano/diasLaborados)}</td><td style="color:var(--navy)">${fmt(VD_ano/DIAS_REALES)}</td></tr>` : ''}
+      ${compActivo && bonoMens>0  ? `<tr class="sub"><td>Bono mensual</td><td>mensual</td><td>${fmt(bonoMens*12)}</td><td>${fmt(bonoMens*12/diasLaborados)}</td><td style="color:var(--navy)">${fmt(bonoMens*12/DIAS_REALES)}</td></tr>` : ''}
+      ${compActivo && bonoAnual>0 ? `<tr class="sub"><td>Bono anual</td><td>anual</td><td>${fmt(bonoAnual)}</td><td>${fmt(bonoAnual/diasLaborados)}</td><td style="color:var(--navy)">${fmt(bonoAnual/DIAS_REALES)}</td></tr>` : ''}
+      ${compActivo && otros>0     ? `<tr class="sub"><td>Otros beneficios</td><td>mensual</td><td>${fmt(otros*12)}</td><td>${fmt(otros*12/diasLaborados)}</td><td style="color:var(--navy)">${fmt(otros*12/DIAS_REALES)}</td></tr>` : ''}
+      <tr class="subtotal"><td colspan="2">Subtotal prestaciones adicionales</td><td>${fmt(totalOpc_ano)}</td><td>${fmt(totalOpc_ano/diasLaborados)}</td><td style="color:var(--navy)">${fmt(totalOpc_ano/DIAS_REALES)}</td></tr>
+      ` : ''}
+
+      <tr class="total-final">
+        <td colspan="2">COSTO TOTAL</td>
+        <td>${fmt(costoAnualTotal)}/año</td>
+        <td>${fmt(costoAnualTotal/diasLaborados)}<br><span style="font-size:10px;opacity:.7">nominal / día</span></td>
+        <td>${fmt(costoAnualTotal/DIAS_REALES)}<br><span style="font-size:10px;opacity:.7">real / día</span></td>
+      </tr>
+    </tbody>`;
+
+  // PANEL DÍAS
+  document.getElementById('panel-dias').innerHTML = `
+    <div class="info-box">
+      El trabajador cuesta aunque no produzca. Además, los días festivos y vacaciones son días pagados sin producción directa.
+    </div>
+    <div class="cost-table-wrap" style="margin-bottom:0">
+      <table class="cost">
+        <thead><tr><th>Concepto</th><th>Días</th><th>Notas</th></tr></thead>
+        <tbody>
+          <tr><td>Días del año</td><td>${DIAS_ANO}</td><td>Base de cálculo</td></tr>
+          <tr class="sub"><td>Domingos / séptimos días (descanso pagado)</td><td>− ${diasSeptimo}</td><td>Art. 69 LFT · 1 por semana</td></tr>
+          <tr class="sub"><td>Días festivos de ley (fijos)</td><td>− ${festivosLey}</td><td>Art. 74 LFT</td></tr>
+          <tr class="sub"><td>Días festivos locales / por costumbre</td><td>− ${festivosCos}</td><td>Acuerdo empresa</td></tr>
+          <tr class="sub"><td>Vacaciones (${anosCompletos} año${anosCompletos!==1?'s':''})</td><td>− ${dvac}</td><td>Art. 76 LFT</td></tr>
+          <tr class="total-final"><td>Días reales laborados / año</td><td>${diasLaborados}</td><td>Base para el costo real</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note" style="margin-top:.75rem">El IMSS cobra cuotas sobre 360 días (SDI × 30 días × 12 meses), pero el trabajador solo genera producción en <strong>${diasLaborados} días</strong>. Esa diferencia de ${360-diasLaborados} días es un costo patronal que debe absorberse en el precio del día laborado.</p>
+  `;
+
+  // PANEL IMSS
+  const pctFactor = (SDI/salDiario - 1) * 100;
+  document.getElementById('panel-imss').innerHTML = `
+    <div class="warn-box">
+      El IMSS no cobra sobre el salario diario ordinario: cobra sobre el <strong>Salario Diario Integrado (SDI)</strong>, que incluye una alícuota de vacaciones, prima vacacional y aguinaldo. Factor de integración = <strong>${factorIntegracion.toFixed(4)}</strong> → el SDI es ${pctFactor.toFixed(1)}% mayor al salario diario.
+    </div>
+    <div class="cost-table-wrap" style="margin-bottom:0">
+      <table class="cost">
+        <thead><tr><th>Concepto</th><th>Valor</th></tr></thead>
+        <tbody>
+          <tr><td>Salario diario ordinario</td><td>${fmt(salDiario)}</td></tr>
+          <tr class="sub"><td>+ Alícuota de prima vacacional (${dvac} días × 25% ÷ 365)</td><td>+ ${fmtN(primaVacFactor/DIAS_ANO * salDiario)}</td></tr>
+          <tr class="sub"><td>+ Alícuota de aguinaldo (15 ÷ 365)</td><td>+ ${fmtN(diasAguinaldo/DIAS_ANO * salDiario)}</td></tr>
+          <tr class="subtotal"><td>SDI calculado (tope 25 UMAs = ${fmt(UMA_DIA*25)}/día)</td><td>${fmt(SDI)}</td></tr>
+          <tr><td>SBC mensual (SDI × 30)</td><td>${fmt(SBC_mes)}</td></tr>
+          <tr><td>SBC anual (SDI × 360)</td><td>${fmt(SBC_ano)}</td></tr>
+          <tr><td>Nivel salarial (× SMG diario $${fmtN(SMG_DIA)})</td><td>${(SDI/SMG_DIA).toFixed(2)} veces SMG</td></tr>
+          <tr class="highlight-row"><td>Tasa C&V progresiva aplicada</td><td>${(pctCyV*100).toFixed(3)}%</td></tr>
+          <tr class="total-final"><td>Total IMSS+SAR+INFONAVIT anual</td><td>${fmt(totalIMSS_ano)}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note" style="margin-top:.75rem">El IMSS cobra cuotas sobre el SDI durante <strong>360 días</strong> al año (30 × 12), mientras que el trabajador produce en solo ${diasLaborados}. Esa brecha es parte del costo real que se distribuye en el precio por día laborado.</p>
+  `;
+
+  // PANEL PASIVOS
+  document.getElementById('panel-pasivos').innerHTML = `
+    <div class="cost-table-wrap" style="margin-bottom:.75rem">
+      <table class="cost">
+        <thead><tr><th>Concepto</th><th>Base legal</th><th>Costo anual</th><th>Costo / día lab.</th></tr></thead>
+        <tbody>
+          <tr><td>Vacaciones (${dvac} días × ${fmt(salDiario)})</td><td>Art. 76 LFT<br><span style="font-size:11px;color:var(--text3)">12 días 1er año, +2 por año adicional</span></td><td>${fmt(costoVacAnual)}</td><td>${fmt(costoVacAnual/diasLaborados)}</td></tr>
+          <tr><td>Prima vacacional (25% de vacaciones)</td><td>Art. 80 LFT</td><td>${fmt(costoPrimaVacAnual)}</td><td>${fmt(costoPrimaVacAnual/diasLaborados)}</td></tr>
+          <tr><td>Aguinaldo (15 días de salario)</td><td>Art. 87 LFT</td><td>${fmt(costoAguinaldoAnual)}</td><td>${fmt(costoAguinaldoAnual/diasLaborados)}</td></tr>
+          <tr class="subtotal"><td colspan="2">Subtotal prestaciones anuales</td><td>${fmt(costoVacAnual+costoPrimaVacAnual+costoAguinaldoAnual)}</td><td>${fmt((costoVacAnual+costoPrimaVacAnual+costoAguinaldoAnual)/diasLaborados)}</td></tr>
+          <tr><td>Prima de antigüedad (12 días/año)<br><span style="font-size:11px;color:var(--text3)">Tope: 2 UMAs/día = ${fmt(UMA_DIA*2)}</span></td><td>Art. 162 LFT</td><td>${fmt(primaAntigAnual)}</td><td>${fmt(primaAntigAnual/diasLaborados)}</td></tr>
+          <tr><td>Indemnización 90 días — provisión anual<br><span style="font-size:11px;color:var(--text3)">90 días ÷ 10 años vida laboral estimada · ${fmt(salDiario)}/día</span></td><td>Art. 48 LFT</td><td>${fmt(ind90_provision_ano)}</td><td>${fmt(ind90_provision_ano/diasLaborados)}</td></tr>
+          <tr class="total-final"><td colspan="2">Total pasivos laborales anuales</td><td>${fmt(costoVacAnual+costoPrimaVacAnual+costoAguinaldoAnual+primaAntigAnual+ind90_provision_ano)}</td><td>${fmt((costoVacAnual+costoPrimaVacAnual+costoAguinaldoAnual+primaAntigAnual+ind90_provision_ano)/diasLaborados)}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note"><strong>Antigüedad:</strong> ${antiguedad.toFixed(2)} años → <strong>${dvac} días de vacaciones</strong> (tabla art. 76 LFT: 12 el 1er año, +2 por año hasta el 5º, después +2 cada 5 años). La prima de antigüedad se devenga a razón de 12 días de salario por año de servicio y debe provisionarse mensualmente como obligación futura.</p>
+  `;
+
+  // PANEL OPCIONALES
+  if(hayOpc) {
+    let rows = '';
+    let notas = [];
+    if(faActivo) {
+      rows += `<tr><td>Fondo de ahorro (${Math.round(pctFA*100)}% s/ sal. mensual × 12)<span class="pill pe">Exento hasta 13%</span></td><td>${fmt(FA_ano)}</td><td>${fmt(FA_ano/diasLaborados)}</td></tr>`;
+      notas.push('Fondo de ahorro: exento ISR/IMSS hasta 13% del salario (Art. 93 LISR) con aportación igual trabajador-patrón.');
+    }
+    if(vdActivo) {
+      rows += `<tr><td>Vales de despensa (${fmt(montoVD)}/mes)<span class="pill pe">Exento hasta ${fmt(VD_exTope)}/mes</span></td><td>${fmt(VD_ano)}</td><td>${fmt(VD_ano/diasLaborados)}</td></tr>`;
+      if(VD_grav>0) rows += `<tr class="sub"><td>↳ Porción gravada (excede 40% UMA)</td><td>${fmt(VD_grav*12)}</td><td>${fmt(VD_grav*12/diasLaborados)}</td></tr>`;
+      notas.push('Vales de despensa: exentos hasta 40% UMA mensual. Excedente integra al SDI.');
+    }
+    if(compActivo) {
+      if(bonoMens>0)  rows += `<tr><td>Bono mensual</td><td>${fmt(bonoMens*12)}</td><td>${fmt(bonoMens*12/diasLaborados)}</td></tr>`;
+      if(bonoAnual>0) rows += `<tr><td>Bono anual</td><td>${fmt(bonoAnual)}</td><td>${fmt(bonoAnual/diasLaborados)}</td></tr>`;
+      if(otros>0)     rows += `<tr><td>Otros beneficios</td><td>${fmt(otros*12)}</td><td>${fmt(otros*12/diasLaborados)}</td></tr>`;
+      notas.push('Bonos ordinarios y permanentes integran al SDI para efectos del IMSS.');
+    }
+    rows += `<tr class="total-final"><td>Total prestaciones adicionales</td><td>${fmt(totalOpc_ano)}</td><td>${fmt(totalOpc_ano/diasLaborados)}</td></tr>`;
+    document.getElementById('panel-opcionales').innerHTML = `
+      <div class="cost-table-wrap" style="margin-bottom:.75rem">
+        <table class="cost">
+          <thead><tr><th>Concepto</th><th>Costo anual</th><th>Costo / día lab.</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+      <p class="note">${notas.join(' ')}</p>`;
+  }
+
+  // PANEL INDEMNIZACIÓN
+  const salTope2 = Math.min(salDiario, UMA_DIA*2);
+  const ind3m    = salDiario * 90;
+  const primaAntigTotal = salTope2 * 12 * antiguedad;
+  document.getElementById('panel-indem').innerHTML = `
+    <div class="warn-box">
+      La indemnización es un pasivo contingente. Los 20 días por año solo aplican si el patrón <strong>pierde el juicio laboral</strong>. Aquí se muestran únicamente los conceptos que se pagan en cualquier terminación.
+    </div>
+    <div class="cost-table-wrap" style="margin-bottom:0">
+      <table class="cost">
+        <thead><tr><th>Concepto</th><th>Base legal</th><th>Estimado actual</th></tr></thead>
+        <tbody>
+          <tr><td>Prima de antigüedad acumulada<br><span style="font-size:11px;color:var(--text3)">12 días × ${antiguedad.toFixed(2)} años × ${fmt(salTope2)}/día (tope 2 UMAs)</span></td><td>Art. 162 LFT</td><td>${fmt(primaAntigTotal)}</td></tr>
+          <tr><td>Indemnización constitucional — 90 días de salario<br><span style="font-size:11px;color:var(--text3)">Aplica en cualquier terminación sin causa justificada</span></td><td>Art. 48 LFT</td><td>${fmt(ind3m)}</td></tr>
+          <tr class="subtotal"><td colspan="2">Total mínimo garantizado</td><td>${fmt(primaAntigTotal+ind3m)}</td></tr>
+          <tr class="sub"><td colspan="2" style="padding-left:14px;font-style:italic">+ 20 días por año trabajado (solo si el patrón pierde el juicio)</td><td style="color:var(--text3)">contingente</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note" style="margin-top:.75rem">El costo de rotación real incluye también: reclutamiento, capacitación y curva de aprendizaje del reemplazante, que típicamente equivalen a 3–6 meses de salario adicionales.</p>
+  `;
+
+  document.getElementById('resultado').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function toggleIMSS() {
+  const rows = document.querySelectorAll('.imss-detail');
+  const icon = document.getElementById('imss-toggle-icon');
+  const open = rows[0].style.display !== 'none';
+  rows.forEach(r => r.style.display = open ? 'none' : 'table-row');
+  icon.textContent = open ? '+' : '−';
+  icon.style.background = open ? 'var(--navy)' : 'var(--teal)';
+}
+</script>
+</body>
+</html>
