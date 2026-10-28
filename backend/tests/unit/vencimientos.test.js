@@ -1,5 +1,5 @@
 const {
-  vencimientos, estado, armarCalendario, validarObligaciones, periodoValido, sumarDias, finDeMes,
+  vencimientos, esInhabil, estado, armarCalendario, validarObligaciones, periodoValido, sumarDias, finDeMes,
 } = require('../../src/lib/vencimientos');
 
 const base = { id: 1, empresa_id: 1, razon_social: 'ACME', descripcion: 'IVA mensual', periodicidad: 'mensual',
@@ -22,7 +22,7 @@ describe('vencimientos', () => {
   test('día 31: último día del mes; febrero 2027 domingo 28 → lunes 1-mar', () => {
     const r = vencimientos({ ...base, dia: 31, alta: '2027-01-01' }, '2027-03-05');
     expect(r).toEqual([
-      { periodo: '2026-12', fecha_vence: '2027-02-01' },   // 31-ene-2027 es domingo
+      { periodo: '2026-12', fecha_vence: '2027-02-02' },   // 31-ene domingo → 1-feb primer lunes de feb (inhábil) → 2-feb
       { periodo: '2027-01', fecha_vence: '2027-03-01' },
     ]);
   });
@@ -137,4 +137,23 @@ describe('validaciones y fechas', () => {
 
 test('vencimientos sin hasta → []', () => {
   expect(vencimientos({ periodicidad: 'mensual', dia: 17, alta: '2026-10-14' }, undefined)).toEqual([]);
+});
+
+describe('días inhábiles (CFF art. 12)', () => {
+  const d = (f) => new Date(f + 'T00:00:00Z');
+  test.each([
+    ['2026-01-01', true], ['2026-02-02', true], ['2026-03-16', true], ['2026-05-01', true], ['2026-05-05', true],
+    ['2026-09-16', true], ['2026-11-16', true], ['2026-12-25', true], ['2026-10-17', true],
+    ['2026-02-09', false], ['2026-03-09', false], ['2026-11-17', false], ['2026-10-19', false],
+  ])('%s inhábil = %s', (f, esperado) => expect(esInhabil(d(f))).toBe(esperado));
+
+  test('16-nov-2026 (tercer lunes de noviembre) recorre al martes 17', () => {
+    const r = vencimientos({ ...base, dia: 16, alta: '2026-11-01' }, '2026-11-30');
+    expect(r).toEqual([{ periodo: '2026-10', fecha_vence: '2026-11-17' }]);
+  });
+
+  test('anual persona física: 30-abr-2028 domingo → 1-may inhábil → 2-may', () => {
+    const r = vencimientos({ ...base, periodicidad: 'anual', dia: 30, mes: 4, alta: '2027-06-01' }, '2028-12-31');
+    expect(r).toEqual([{ periodo: '2027', fecha_vence: '2028-05-02' }]);
+  });
 });

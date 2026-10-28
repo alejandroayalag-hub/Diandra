@@ -16,14 +16,28 @@ const hoyMx = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Mexico
 const sumarDias = (f, n) => { const [a, m, d] = partes(f); return iso(utc(a, m, d + n)); };
 const finDeMes = (f, mesesAdelante) => { const [a, m] = partes(f); return iso(utc(a, m + mesesAdelante + 1, 0)); };
 
-// Día N del mes (o el último si no existe); sábado/domingo → lunes.
-// ponytail: sin días festivos oficiales; agregar tabla de inhábiles si Diana la necesita.
+// Días inhábiles del CFF art. 12: fines de semana y descansos fijos o "n-ésimo lunes".
+// ponytail: el día de transmisión del Ejecutivo (cada 6 años) no se cuenta: sumarlo correría vencimientos un
+// día después; si lo hay, mejor que venza antes. Vacaciones del SAT no aplican a declaraciones (mismo artículo).
+const FIJOS = ['01-01', '05-01', '05-05', '09-16', '12-25'];
+const enesimoLunes = (anio, mes0, n) => {
+  const primero = utc(anio, mes0, 1).getUTCDay();
+  return 1 + ((8 - primero) % 7) + (n - 1) * 7;
+};
+function esInhabil(f) {
+  const dow = f.getUTCDay(), anio = f.getUTCFullYear(), mes0 = f.getUTCMonth(), dia = f.getUTCDate();
+  if (dow === 0 || dow === 6) return true;
+  if (FIJOS.includes(iso(f).slice(5))) return true;
+  return (mes0 === 1 && dia === enesimoLunes(anio, 1, 1))     // primer lunes de febrero
+      || (mes0 === 2 && dia === enesimoLunes(anio, 2, 3))     // tercer lunes de marzo
+      || (mes0 === 10 && dia === enesimoLunes(anio, 10, 3));  // tercer lunes de noviembre
+}
+
+// Día N del mes (o el último si no existe); si es inhábil se recorre al siguiente día hábil.
 function fechaVence(anio, mes0, dia) {
   const ultimo = utc(anio, mes0 + 1, 0).getUTCDate();
   const f = utc(anio, mes0, Math.min(dia, ultimo));
-  const dow = f.getUTCDay();
-  if (dow === 6) f.setUTCDate(f.getUTCDate() + 2);
-  if (dow === 0) f.setUTCDate(f.getUTCDate() + 1);
+  while (esInhabil(f)) f.setUTCDate(f.getUTCDate() + 1);
   return iso(f);
 }
 
@@ -103,5 +117,5 @@ function validarObligaciones(lista) {
 const periodoValido = (periodicidad, periodo) => !!(PERIODO_RE[periodicidad] && PERIODO_RE[periodicidad].test(String(periodo || '')));
 
 module.exports = {
-  PERIODICIDADES, vencimientos, estado, armarCalendario, validarObligaciones, periodoValido, hoyMx, sumarDias, finDeMes,
+  PERIODICIDADES, vencimientos, esInhabil, estado, armarCalendario, validarObligaciones, periodoValido, hoyMx, sumarDias, finDeMes,
 };
